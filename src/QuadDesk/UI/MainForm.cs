@@ -66,7 +66,7 @@ internal sealed class MainForm : Form
             int failed = controller.HotkeyStatuses.Count(s => !s.Registered && !string.IsNullOrWhiteSpace(s.Binding));
             toggle.Text = controller.Config.Enabled && controller.Target is not null ? "Выключить зоны" : "Включить зоны";
             status.ForeColor = controller.Active ? Color.DarkGreen : Color.Firebrick;
-            status.Text = $"{controller.Status}\n{controller.Target?.ToString() ?? "Дисплей не выбран или отключён"}\nРаскладка: {controller.Layout.Name} · зон: {controller.Zones.Count} · конфликтов клавиш: {failed}\nПоказать зоны → перенести окно на этот дисплей → разместить по зонам.";
+            status.Text = $"{controller.Status}\n{controller.Target?.ToString() ?? "Дисплей не выбран или отключён"}\nРаскладка: {controller.Layout.Name} · зон: {controller.Zones.Count} · Smart Snap: {(controller.Config.SmartSnap ? "вкл." : "выкл.")} · конфликтов клавиш: {failed}\nПеретащите окно к краю зоны для локального split или разверните его для локального maximize.";
             preview.CurrentLayout = controller.Layout; preview.Monitor = controller.TargetBounds; preview.Invalidate();
         }
         finally { updating = false; }
