@@ -78,6 +78,9 @@ public sealed class AppConfig
     public string ActiveLayoutId { get; set; } = "main-plus-3";
     public bool AutoSnap { get; set; } = true;
     public bool SmartSnap { get; set; } = true;
+    public bool StrictSubmonitors { get; set; }
+    public bool CaptureWinArrow { get; set; }
+    public int GuardIntervalMs { get; set; } = 100;
     public bool UseFullMonitorBounds { get; set; } = true;
     public bool RestoreWorkspaceOnStart { get; set; }
     public int MinimumZoneWidth { get; set; } = 200;
