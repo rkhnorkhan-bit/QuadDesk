@@ -352,8 +352,18 @@ internal sealed class QuadDeskController : IDisposable
             if (!CanTouch(hwnd))
                 continue;
 
-            Track(hwnd);
+            var state = Track(hwnd);
             ApplyRule(hwnd);
+
+            if (Config.SmartSnap &&
+                Zones.FirstOrDefault(z => z.Id == state.ZoneId) is { } zone &&
+                WindowManager.Bounds(hwnd) is { } rect &&
+                !LayoutEngine.IsInside(rect, zone.Bounds))
+            {
+                var fitted = rect.FitInside(zone.Bounds);
+                if (fitted != rect)
+                    Place(hwnd, fitted, state);
+            }
         }
     }
 
@@ -728,7 +738,7 @@ internal sealed class QuadDeskController : IDisposable
 
     void ShowOverlay(nint hwnd)
     {
-        if (!Config.AutoSnap ||
+        if ((!Config.AutoSnap && !Config.SmartSnap) ||
             Target is null ||
             !NativeMethods.IsDefaultDesktop() ||
             !NativeMethods.GetCursorPos(out var p) ||
