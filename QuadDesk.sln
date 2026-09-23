@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuadDesk.Core", "src\QuadDesk.Core\QuadDesk.Core.csproj", "{A9F312A5-553E-4A18-A113-7FB343322D01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuadDesk", "src\QuadDesk\QuadDesk.csproj", "{A9F312A5-553E-4A18-A113-7FB343322D02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuadDesk.Tests", "tests\QuadDesk.Tests\QuadDesk.Tests.csproj", "{A9F312A5-553E-4A18-A113-7FB343322D03}"
+EndProject
+Global
+ GlobalSection(SolutionConfigurationPlatforms) = preSolution
+  Debug|Any CPU = Debug|Any CPU
+  Release|Any CPU = Release|Any CPU
+ EndGlobalSection
+ GlobalSection(ProjectConfigurationPlatforms) = postSolution
+  {A9F312A5-553E-4A18-A113-7FB343322D01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D01}.Release|Any CPU.Build.0 = Release|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D02}.Release|Any CPU.Build.0 = Release|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {A9F312A5-553E-4A18-A113-7FB343322D03}.Release|Any CPU.Build.0 = Release|Any CPU
+ EndGlobalSection
+EndGlobal

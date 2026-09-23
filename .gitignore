@@ -1,0 +1,21 @@
+**/bin/
+**/obj/
+artifacts/
+.vs/
+.idea/
+*.user
+*.suo
+*.cache
+*.log
+*.backup-*
+config.json
+workspaces/
+logs/
+
+# Test/build evidence
+TestResults/
+*.trx
+evidence/
+
+# Temporary project notes
+README_PATCH.txt

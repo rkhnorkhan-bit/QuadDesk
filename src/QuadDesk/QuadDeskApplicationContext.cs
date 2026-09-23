@@ -1,0 +1,59 @@
+using System.Diagnostics;
+using QuadDesk.Services;
+using QuadDesk.UI;
+namespace QuadDesk;
+internal sealed class QuadDeskApplicationContext : ApplicationContext
+{
+    readonly EventHost host = new();
+    readonly QuadDeskController controller;
+    readonly MainForm main;
+    readonly NotifyIcon tray;
+    readonly Icon trayIcon;
+    readonly ContextMenuStrip menu = new();
+    nint menuForeground;
+    public QuadDeskApplicationContext()
+    {
+        controller = new(new Storage(), host); main = new(controller);
+        trayIcon = (Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application).Clone() as Icon ?? SystemIcons.Application;
+        tray = new() { Text = "QuadDesk", Icon = trayIcon, ContextMenuStrip = menu, Visible = true };
+        tray.DoubleClick += (_, _) => ShowMain();
+        controller.Notice += Notice;
+        menu.Opening += (_, _) => { menuForeground = controller.LastForeground; BuildMenu(); };
+        controller.Start(); Log.Write("Application start");
+        main.Show();
+        if (controller.Config.TargetDevicePath is null) main.Safe(main.SelectMonitor);
+    }
+    void ShowMain() { main.Show(); main.WindowState = FormWindowState.Normal; main.Activate(); }
+    void Notice(string text) { tray.ShowBalloonTip(6000, "QuadDesk", text, ToolTipIcon.Warning); }
+    void BuildMenu()
+    {
+        foreach (ToolStripItem item in menu.Items.Cast<ToolStripItem>().ToArray()) { menu.Items.Remove(item); item.Dispose(); }
+        ToolStripMenuItem Add(string text, Action action, bool check = false)
+        { var item = new ToolStripMenuItem(text) { Checked = check }; item.Click += (_, _) => main.Safe(action); menu.Items.Add(item); return item; }
+        Add("Открыть QuadDesk", ShowMain); Add(controller.Config.Enabled ? "Выключить зоны" : "Включить зоны", controller.Toggle, controller.Config.Enabled);
+        Add("Показать зоны (5 сек)", controller.PreviewZones);
+        Add("Разместить окна по зонам", controller.ArrangeWindows);
+        Add("Горячие клавиши…", () => { ShowMain(); main.Hotkeys(); });
+        var layouts = new ToolStripMenuItem("Раскладка"); menu.Items.Add(layouts);
+        foreach (var layout in controller.Layouts)
+        { var item = new ToolStripMenuItem(layout.Name) { Checked = layout.Id == controller.Config.ActiveLayoutId }; item.Click += (_, _) => main.Safe(() => controller.SelectLayout(layout.Id)); layouts.DropDownItems.Add(item); }
+        var move = new ToolStripMenuItem("Переместить активное окно"); menu.Items.Add(move);
+        for (int i = 0; i < controller.Zones.Count; i++)
+        { int number = i + 1; var item = new ToolStripMenuItem($"{number}. {controller.Zones[i].Name}"); item.Click += (_, _) => controller.ExecuteFor($"zone:{number}", menuForeground); move.DropDownItems.Add(item); }
+        Add("Развернуть / восстановить в зоне", () => controller.ExecuteFor("maximize", menuForeground));
+        Add("Восстановить размер", () => controller.ExecuteFor("restore", menuForeground));
+        Add("Автопривязка", () => { controller.Config.AutoSnap = !controller.Config.AutoSnap; controller.Save(); }, controller.Config.AutoSnap);
+        menu.Items.Add(new ToolStripSeparator());
+        Add("Редактор раскладки…", () => { ShowMain(); main.Edit(); });
+        Add("Правила…", () => { ShowMain(); main.Rules(); }); Add("Настройки…", () => { ShowMain(); main.Settings(); });
+        Add("Выбрать дисплей…", main.SelectMonitor); Add("Сохранить workspace", controller.SaveWorkspace); Add("Восстановить workspace", controller.TryRestoreWorkspace);
+        Add("Запускать с Windows", () => StartupService.Set(!StartupService.Enabled), StartupService.Enabled);
+        Add("Открыть config.json", () => { controller.Save(); Process.Start(new ProcessStartInfo(controller.Store.ConfigPath) { UseShellExecute = true }); });
+        Add("О программе", () => MessageBox.Show(main, $"{AppInfo.DisplayName}\nЛогические зоны одного физического дисплея.\nMIT. Без телеметрии.\nГорячие клавиши настраиваются через меню.\nПеред играми выключайте QuadDesk.\nИзменения config.json вручную применяются после перезапуска.", "QuadDesk"));
+        menu.Items.Add(new ToolStripSeparator()); Add("Выход", ExitThread);
+    }
+    protected override void ExitThreadCore()
+    {
+        tray.Visible = false; controller.Dispose(); main.Dispose(); tray.Dispose(); trayIcon.Dispose(); menu.Dispose(); host.Dispose(); base.ExitThreadCore();
+    }
+}

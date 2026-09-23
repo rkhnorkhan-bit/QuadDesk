@@ -1,0 +1,61 @@
+{
+  "id": "six",
+  "name": "Six 3×2",
+  "root": {
+    "type": "split",
+    "orientation": "horizontal",
+    "ratio": 0.5,
+    "first": {
+      "type": "split",
+      "orientation": "vertical",
+      "ratio": 0.3333333333333333,
+      "first": {
+        "type": "zone",
+        "id": "top-left",
+        "name": "top-left"
+      },
+      "second": {
+        "type": "split",
+        "orientation": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "zone",
+          "id": "top-center",
+          "name": "top-center"
+        },
+        "second": {
+          "type": "zone",
+          "id": "top-right",
+          "name": "top-right"
+        }
+      }
+    },
+    "second": {
+      "type": "split",
+      "orientation": "vertical",
+      "ratio": 0.3333333333333333,
+      "first": {
+        "type": "zone",
+        "id": "bottom-left",
+        "name": "bottom-left"
+      },
+      "second": {
+        "type": "split",
+        "orientation": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "zone",
+          "id": "bottom-center",
+          "name": "bottom-center"
+        },
+        "second": {
+          "type": "zone",
+          "id": "bottom-right",
+          "name": "bottom-right"
+        }
+      }
+    }
+  },
+  "createdAt": "2026-09-22T00:00:00Z",
+  "updatedAt": "2026-09-22T00:00:00Z"
+}

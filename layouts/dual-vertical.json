@@ -1,0 +1,21 @@
+{
+  "id": "dual-vertical",
+  "name": "Dual Vertical",
+  "root": {
+    "type": "split",
+    "orientation": "vertical",
+    "ratio": 0.5,
+    "first": {
+      "type": "zone",
+      "id": "main",
+      "name": "Main"
+    },
+    "second": {
+      "type": "zone",
+      "id": "right",
+      "name": "Right"
+    }
+  },
+  "createdAt": "2026-09-22T00:00:00Z",
+  "updatedAt": "2026-09-22T00:00:00Z"
+}

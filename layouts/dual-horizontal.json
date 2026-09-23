@@ -1,0 +1,21 @@
+{
+  "id": "dual-horizontal",
+  "name": "Dual Horizontal",
+  "root": {
+    "type": "split",
+    "orientation": "horizontal",
+    "ratio": 0.5,
+    "first": {
+      "type": "zone",
+      "id": "top",
+      "name": "Top"
+    },
+    "second": {
+      "type": "zone",
+      "id": "bottom",
+      "name": "Bottom"
+    }
+  },
+  "createdAt": "2026-09-22T00:00:00Z",
+  "updatedAt": "2026-09-22T00:00:00Z"
+}

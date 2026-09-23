@@ -1,0 +1,41 @@
+{
+  "id": "quad",
+  "name": "Quad 2×2",
+  "root": {
+    "type": "split",
+    "orientation": "horizontal",
+    "ratio": 0.5,
+    "first": {
+      "type": "split",
+      "orientation": "vertical",
+      "ratio": 0.5,
+      "first": {
+        "type": "zone",
+        "id": "top-left",
+        "name": "Top Left"
+      },
+      "second": {
+        "type": "zone",
+        "id": "top-right",
+        "name": "Top Right"
+      }
+    },
+    "second": {
+      "type": "split",
+      "orientation": "vertical",
+      "ratio": 0.5,
+      "first": {
+        "type": "zone",
+        "id": "bottom-left",
+        "name": "Bottom Left"
+      },
+      "second": {
+        "type": "zone",
+        "id": "bottom-right",
+        "name": "Bottom Right"
+      }
+    }
+  },
+  "createdAt": "2026-09-22T00:00:00Z",
+  "updatedAt": "2026-09-22T00:00:00Z"
+}

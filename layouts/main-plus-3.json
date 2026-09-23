@@ -1,0 +1,41 @@
+{
+  "id": "main-plus-3",
+  "name": "Main + 3",
+  "root": {
+    "type": "split",
+    "orientation": "vertical",
+    "ratio": 0.65,
+    "first": {
+      "type": "zone",
+      "id": "main",
+      "name": "Main"
+    },
+    "second": {
+      "type": "split",
+      "orientation": "horizontal",
+      "ratio": 0.3333333333333333,
+      "first": {
+        "type": "zone",
+        "id": "top-right",
+        "name": "Top Right"
+      },
+      "second": {
+        "type": "split",
+        "orientation": "horizontal",
+        "ratio": 0.5,
+        "first": {
+          "type": "zone",
+          "id": "middle-right",
+          "name": "Middle Right"
+        },
+        "second": {
+          "type": "zone",
+          "id": "bottom-right",
+          "name": "Bottom Right"
+        }
+      }
+    }
+  },
+  "createdAt": "2026-09-22T00:00:00Z",
+  "updatedAt": "2026-09-22T00:00:00Z"
+}

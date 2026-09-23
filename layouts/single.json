@@ -1,0 +1,11 @@
+{
+  "id": "single",
+  "name": "Single",
+  "root": {
+    "type": "zone",
+    "id": "main",
+    "name": "Main"
+  },
+  "createdAt": "2026-09-22T00:00:00Z",
+  "updatedAt": "2026-09-22T00:00:00Z"
+}
