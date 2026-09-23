@@ -83,7 +83,7 @@ internal sealed class LayoutEditorForm : Form
 internal sealed class SettingsForm : Form
 {
     public AppConfig Result { get; private set; }
-    readonly CheckBox full, snap, restore;
+    readonly CheckBox full, snap, smart, restore;
     readonly NumericUpDown width, height;
     readonly TextBox exclude;
     readonly HotkeysEditor hotkeysEditor;
@@ -100,14 +100,14 @@ internal sealed class SettingsForm : Form
         width = new() { Minimum = 40, Maximum = 4000, Value = source.MinimumZoneWidth, Width = 120 };
         height = new() { Minimum = 40, Maximum = 4000, Value = source.MinimumZoneHeight, Width = 120 };
         exclude = new() { Multiline = true, Width = 650, Height = 130, ScrollBars = ScrollBars.Vertical, Text = string.Join(Environment.NewLine, source.ExcludedProcesses) };
-        flow.Controls.AddRange([full, snap, restore, new Label { Text = "Минимальная ширина зоны (px)", AutoSize = true }, width, new Label { Text = "Минимальная высота зоны (px)", AutoSize = true }, height, new Label { Text = "Исключения: имя процесса на строку (например game.exe)", AutoSize = true }, exclude,
+        flow.Controls.AddRange([full, snap, smart, restore, new Label { Text = "Минимальная ширина зоны (px)", AutoSize = true }, width, new Label { Text = "Минимальная высота зоны (px)", AutoSize = true }, height, new Label { Text = "Исключения: имя процесса на строку (например game.exe)", AutoSize = true }, exclude,
             new Label { Text = "Панель задач на ТВ: Параметры Windows → Персонализация →\nПанель задач → Поведение → показывать на всех дисплеях: выкл.", AutoSize = true }]);
         general.Controls.Add(flow); hotkeys.Controls.Add(hotkeysEditor);
         var save = new Button { Dock = DockStyle.Bottom, Text = "Сохранить", Height = 42 }; save.Click += (_, _) =>
         {
             try
             {
-                Result.UseFullMonitorBounds = full.Checked; Result.AutoSnap = snap.Checked; Result.RestoreWorkspaceOnStart = restore.Checked;
+                Result.UseFullMonitorBounds = full.Checked; Result.AutoSnap = snap.Checked; Result.SmartSnap = smart.Checked; Result.RestoreWorkspaceOnStart = restore.Checked;
                 Result.MinimumZoneWidth = (int)width.Value; Result.MinimumZoneHeight = (int)height.Value;
                 Result.ExcludedProcesses = exclude.Lines.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList();
                 Result.Hotkeys = hotkeysEditor.ReadBindings();
