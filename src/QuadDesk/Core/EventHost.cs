@@ -8,6 +8,7 @@ internal sealed class EventHost : Form
     public event Action<string>? Command;
     public event Action? TopologyChanged;
     public event Action<bool>? LockChanged;
+    public Func<string, bool>? InterceptCommand;
     sealed class Backend : IHotkeyBackend
     {
         public nint Window;
@@ -20,11 +21,13 @@ internal sealed class EventHost : Form
     }
     readonly Backend backend = new();
     readonly HotkeyRegistry registry;
+    readonly WinArrowInterceptor winArrow;
     public IReadOnlyList<HotkeyStatus> HotkeyStatuses => registry.Statuses;
     public EventHost()
     {
         ShowInTaskbar = false; FormBorderStyle = FormBorderStyle.None; Opacity = 0;
         registry = new(backend); backend.Window = Handle;
+        winArrow = new(action => InterceptCommand?.Invoke(action) == true);
         if (!NativeMethods.WTSRegisterSessionNotification(Handle, 0)) Log.Write("Session notification unavailable; desktop guard remains active");
     }
     protected override void SetVisibleCore(bool value) => base.SetVisibleCore(false);
@@ -59,8 +62,56 @@ internal sealed class EventHost : Form
     }
     protected override void Dispose(bool disposing)
     {
-        if (disposing) registry.Dispose();
+        if (disposing)
+        {
+            registry.Dispose();
+            winArrow.Dispose();
+        }
         base.Dispose(disposing);
+    }
+}
+internal sealed class WinArrowInterceptor : IDisposable
+{
+    readonly NativeMethods.KeyboardEventProc callback;
+    readonly Func<string, bool> handler;
+    nint hook;
+    bool disposed;
+    public WinArrowInterceptor(Func<string, bool> handler)
+    {
+        this.handler = handler;
+        callback = OnKeyboard;
+        hook = NativeMethods.SetWindowsHookEx(NativeMethods.WhKeyboardLl, callback, NativeMethods.GetModuleHandle(null), 0);
+        if (hook == 0) Log.Write("Win+Arrow hook unavailable: " + Marshal.GetLastWin32Error());
+    }
+    nint OnKeyboard(int code, nint wParam, nint lParam)
+    {
+        if (code >= 0 && (wParam == NativeMethods.WmKeyDown || wParam == NativeMethods.WmSysKeyDown))
+        {
+            var data = Marshal.PtrToStructure<NativeMethods.KBDLLHOOKSTRUCT>(lParam);
+            bool win = (NativeMethods.GetKeyState(NativeMethods.VkLWin) & unchecked((short)0x8000)) != 0 || (NativeMethods.GetKeyState(NativeMethods.VkRWin) & unchecked((short)0x8000)) != 0;
+            if (win && CommandFor(data.VkCode) is { } command)
+            {
+                try { if (handler(command)) return 1; }
+                catch (Exception ex) { Log.Write("Win+Arrow intercept failure: " + ex.GetType().Name); }
+            }
+        }
+        return NativeMethods.CallNextHookEx(hook, code, wParam, lParam);
+    }
+    static string? CommandFor(uint vk) => vk switch
+    {
+        NativeMethods.VkLeft => "winsnap:left",
+        NativeMethods.VkRight => "winsnap:right",
+        NativeMethods.VkUp => "winsnap:up",
+        NativeMethods.VkDown => "winsnap:down",
+        _ => null
+    };
+    public void Dispose()
+    {
+        if (disposed) return;
+        disposed = true;
+        if (hook != 0) NativeMethods.UnhookWindowsHookEx(hook);
+        hook = 0;
+        GC.KeepAlive(callback);
     }
 }
 internal sealed class WinEventHooks : IDisposable
