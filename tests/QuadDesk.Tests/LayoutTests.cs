@@ -70,6 +70,47 @@ public class LayoutTests
     { var z = LayoutEngine.Calculate(Preset(layout), new(2560, -1000, 3840, 2160)); Assert.Equal(expected, LayoutEngine.Neighbor(z, z.Single(x => x.Id == from), dir)?.Id); }
     [Fact] public void NoWrapAtEdge()
     { var z = LayoutEngine.Calculate(Preset("quad"), new(0, 0, 3840, 2160)); Assert.Null(LayoutEngine.Neighbor(z, z[0], Direction.Left)); }
+
+    [Fact] public void SmartSnapUsesParentZoneAsItsOwnWorkspace()
+    {
+        var zone = new PixelRect(1920, 1080, 1921, 1081);
+        Assert.Equal(new PixelRect(1920, 1080, 960, 1081), LayoutEngine.LocalSnapRect(zone, LocalSnapSlot.Left));
+        Assert.Equal(new PixelRect(2880, 1080, 961, 1081), LayoutEngine.LocalSnapRect(zone, LocalSnapSlot.Right));
+        Assert.Equal(new PixelRect(1920, 1080, 960, 540), LayoutEngine.LocalSnapRect(zone, LocalSnapSlot.TopLeft));
+        Assert.Equal(new PixelRect(2880, 1620, 961, 541), LayoutEngine.LocalSnapRect(zone, LocalSnapSlot.BottomRight));
+        Assert.Equal(zone.Area, LayoutEngine.LocalSnapRect(zone, LocalSnapSlot.Left).Area + LayoutEngine.LocalSnapRect(zone, LocalSnapSlot.Right).Area);
+    }
+
+    [Theory]
+    [InlineData(100, 400, LocalSnapSlot.Left)]
+    [InlineData(899, 400, LocalSnapSlot.Right)]
+    [InlineData(101, 101, LocalSnapSlot.TopLeft)]
+    [InlineData(898, 101, LocalSnapSlot.TopRight)]
+    [InlineData(101, 699, LocalSnapSlot.BottomLeft)]
+    [InlineData(898, 699, LocalSnapSlot.BottomRight)]
+    [InlineData(500, 101, LocalSnapSlot.Full)]
+    [InlineData(500, 400, LocalSnapSlot.Free)]
+    public void SmartSnapDetectsLocalEdges(int x, int y, LocalSnapSlot expected)
+    {
+        var zone = new PixelRect(100, 100, 800, 600);
+        Assert.Equal(expected, LayoutEngine.DetectLocalSnapSlot(zone, x, y));
+    }
+
+    [Fact] public void NativeMonitorSnapCanBeTranslatedIntoAParentZone()
+    {
+        var monitor = new PixelRect(0, 0, 3840, 2160);
+        Assert.Equal(LocalSnapSlot.Left, LayoutEngine.MatchSnapRect(monitor, new(0, 0, 1920, 2160)));
+        Assert.Equal(LocalSnapSlot.BottomRight, LayoutEngine.MatchSnapRect(monitor, new(1920, 1080, 1920, 1080)));
+        Assert.Equal(LocalSnapSlot.Free, LayoutEngine.MatchSnapRect(monitor, new(200, 200, 1200, 800)));
+    }
+
+    [Fact] public void SmartSnapContainmentHandlesNegativeMonitorCoordinates()
+    {
+        var zone = new PixelRect(-3840, -1080, 1920, 1080);
+        Assert.True(LayoutEngine.IsInside(new(-3800, -1000, 900, 600), zone));
+        Assert.False(LayoutEngine.IsInside(new(-3900, -1000, 900, 600), zone));
+        Assert.Equal(new PixelRect(-3840, -1000, 900, 600), new PixelRect(-3900, -1000, 900, 600).FitInside(zone));
+    }
     [Fact] public void PerpendicularOverlapTakesPriority()
     {
         var from = new Zone("from", "", new(0, 0, 100, 100));
@@ -90,10 +131,10 @@ public class LayoutTests
     }
     [Fact] public void ConfigAndWorkspaceRoundtrip()
     {
-        var c = new AppConfig { TargetDevicePath = @"\\?\DISPLAY#HAIER", Rules = [new() { ProcessName = "Code.exe", ZoneId = "main" }] };
-        Assert.Equal(c.TargetDevicePath, JsonData.Clone(c).TargetDevicePath); Assert.Equal(c.Hotkeys, JsonData.Clone(c).Hotkeys);
-        var w = new Workspace { LayoutId = "main-plus-3", Windows = [new() { Identity = new("Code", "C:/Code.exe", "Chrome_WidgetWin_1"), ZoneId = "main", X = .1, Width = .8, LogicalMaximized = true }] };
-        var clone = JsonData.Clone(w); Assert.Equal(w.Windows[0].Identity, clone.Windows[0].Identity); Assert.True(clone.Windows[0].LogicalMaximized); Assert.Equal(.8, clone.Windows[0].Width);
+        var c = new AppConfig { TargetDevicePath = @"\\?\DISPLAY#HAIER", SmartSnap = true, Rules = [new() { ProcessName = "Code.exe", ZoneId = "main" }] };
+        var configClone = JsonData.Clone(c); Assert.Equal(c.TargetDevicePath, configClone.TargetDevicePath); Assert.Equal(c.Hotkeys, configClone.Hotkeys); Assert.True(configClone.SmartSnap);
+        var w = new Workspace { LayoutId = "main-plus-3", Windows = [new() { Identity = new("Code", "C:/Code.exe", "Chrome_WidgetWin_1"), ZoneId = "main", X = .1, Width = .8, LogicalMaximized = false, SnapSlot = LocalSnapSlot.Left }] };
+        var clone = JsonData.Clone(w); Assert.Equal(w.Windows[0].Identity, clone.Windows[0].Identity); Assert.False(clone.Windows[0].LogicalMaximized); Assert.Equal(.8, clone.Windows[0].Width); Assert.Equal(LocalSnapSlot.Left, clone.Windows[0].SnapSlot);
     }
     [Fact] public void BadDiscriminatorRejected()
     { Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<LayoutNode>("{\"type\":\"unknown\"}", JsonData.Options)); }
