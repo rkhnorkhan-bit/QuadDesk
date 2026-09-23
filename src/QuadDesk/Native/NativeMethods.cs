@@ -7,9 +7,11 @@ internal static class NativeMethods
 {
     internal const uint SwpNoZOrder = 0x0004, SwpNoActivate = 0x0010, SwpNoOwnerZOrder = 0x0200;
     internal const uint MoveStart = 0x000A, MoveEnd = 0x000B, Foreground = 0x0003, Destroy = 0x8001, Show = 0x8002, State = 0x800A, Location = 0x800B;
+    internal const int WhKeyboardLl = 13, WmKeyDown = 0x0100, WmSysKeyDown = 0x0104, VkLeft = 0x25, VkUp = 0x26, VkRight = 0x27, VkDown = 0x28, VkLWin = 0x5B, VkRWin = 0x5C;
     [StructLayout(LayoutKind.Sequential)] internal struct RECT { public int Left, Top, Right, Bottom; public readonly PixelRect Pixel => new(Left, Top, Right - Left, Bottom - Top); }
     [StructLayout(LayoutKind.Sequential)] internal struct POINT { public int X, Y; }
     [StructLayout(LayoutKind.Sequential)] internal struct WINDOWPLACEMENT { public uint Length, Flags, ShowCmd; public POINT MinPosition, MaxPosition; public RECT NormalPosition; }
+    [StructLayout(LayoutKind.Sequential)] internal struct KBDLLHOOKSTRUCT { public uint VkCode, ScanCode, Flags, Time; public nint ExtraInfo; }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] internal struct MONITORINFOEX
     { public int Size; public RECT Monitor, Work; public uint Flags; [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string Device; }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] internal struct DISPLAY_DEVICE
@@ -31,6 +33,7 @@ internal static class NativeMethods
     }
     internal delegate void WinEventProc(nint hook, uint eventType, nint hwnd, int objectId, int childId, uint eventThread, uint eventTime);
     internal delegate bool EnumWindowsProc(nint hwnd, nint parameter);
+    internal delegate nint KeyboardEventProc(int code, nint wParam, nint lParam);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool IsWindow(nint hwnd);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool IsWindowVisible(nint hwnd);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool IsHungAppWindow(nint hwnd);
@@ -53,6 +56,11 @@ internal static class NativeMethods
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool UnhookWinEvent(nint hook);
     [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool RegisterHotKey(nint hwnd, int id, uint modifiers, uint key);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool UnregisterHotKey(nint hwnd, int id);
+    [DllImport("user32.dll", SetLastError = true, EntryPoint = "SetWindowsHookExW")] internal static extern nint SetWindowsHookEx(int idHook, KeyboardEventProc callback, nint module, uint threadId);
+    [DllImport("user32.dll")] internal static extern nint CallNextHookEx(nint hook, int code, nint wParam, nint lParam);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool UnhookWindowsHookEx(nint hook);
+    [DllImport("user32.dll")] internal static extern short GetKeyState(int virtualKey);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetModuleHandleW")] internal static extern nint GetModuleHandle(string? moduleName);
     [DllImport("user32.dll")] internal static extern nint MonitorFromWindow(nint hwnd, uint flags);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool GetMonitorInfo(nint monitor, ref MONITORINFOEX info);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool EnumDisplayDevices(string? device, uint index, ref DISPLAY_DEVICE display, uint flags);
