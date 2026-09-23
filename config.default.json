@@ -3,7 +3,7 @@
   "enabled": true,
   "targetDevicePath": null,
   "activeLayoutId": "main-plus-3",
-  "autoSnap": true,
+  "autoSnap": true,\n  "smartSnap": true,
   "useFullMonitorBounds": true,
   "restoreWorkspaceOnStart": false,
   "minimumZoneWidth": 200,
