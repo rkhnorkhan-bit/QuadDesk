@@ -70,11 +70,43 @@ public sealed class WindowRule
 
 public sealed record WindowIdentity(string ProcessName, string ExecutablePath, string WindowClass);
 
+public sealed class DisplayProfile
+{
+    public string Key { get; set; } = "";
+    public string DevicePath { get; set; } = "";
+    public string DeviceName { get; set; } = "";
+    public string FriendlyName { get; set; } = "";
+    public PixelRect LastBounds { get; set; }
+    public PixelRect LastWorkArea { get; set; }
+    public bool Primary { get; set; }
+    public uint RefreshRate { get; set; }
+    public bool Enabled { get; set; } = true;
+    public string ActiveLayoutId { get; set; } = "main-plus-3";
+    public bool AutoSnap { get; set; } = true;
+    public bool SmartSnap { get; set; } = true;
+    public bool StrictSubmonitors { get; set; }
+    public bool CaptureWinArrow { get; set; }
+    public bool SuspendWindowsSnap { get; set; }
+    public bool UseFullMonitorBounds { get; set; } = true;
+    public bool RestoreWorkspaceOnStart { get; set; }
+    public int GuardIntervalMs { get; set; } = 100;
+    public int MinimumZoneWidth { get; set; } = 200;
+    public int MinimumZoneHeight { get; set; } = 150;
+    public DateTimeOffset LastSeenAt { get; set; } = DateTimeOffset.UtcNow;
+
+    [JsonIgnore]
+    public string DisplayLabel =>
+        string.IsNullOrWhiteSpace(FriendlyName)
+            ? $"{DeviceName} — {LastBounds.Width}×{LastBounds.Height}"
+            : $"{DeviceName} · {FriendlyName} — {LastBounds.Width}×{LastBounds.Height}";
+}
+
 public sealed class AppConfig
 {
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
     public bool Enabled { get; set; } = true;
     public string? TargetDevicePath { get; set; }
+    public string? ActiveDisplayProfileKey { get; set; }
     public string ActiveLayoutId { get; set; } = "main-plus-3";
     public bool AutoSnap { get; set; } = true;
     public bool SmartSnap { get; set; } = true;
@@ -86,6 +118,7 @@ public sealed class AppConfig
     public bool RestoreWorkspaceOnStart { get; set; }
     public int MinimumZoneWidth { get; set; } = 200;
     public int MinimumZoneHeight { get; set; } = 150;
+    public List<DisplayProfile> DisplayProfiles { get; set; } = [];
     public List<string> ExcludedProcesses { get; set; } = [];
     public List<WindowRule> Rules { get; set; } = [];
     public Dictionary<string, string> Hotkeys { get; set; } = DefaultHotkeys();
