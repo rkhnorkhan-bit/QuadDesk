@@ -80,6 +80,7 @@ public sealed class AppConfig
     public bool SmartSnap { get; set; } = true;
     public bool StrictSubmonitors { get; set; }
     public bool CaptureWinArrow { get; set; }
+    public bool SuspendWindowsSnap { get; set; }
     public int GuardIntervalMs { get; set; } = 100;
     public bool UseFullMonitorBounds { get; set; } = true;
     public bool RestoreWorkspaceOnStart { get; set; }
