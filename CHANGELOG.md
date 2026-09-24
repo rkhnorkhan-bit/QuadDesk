@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.8
+
+- добавлена схема `schemaVersion: 2` для будущих индивидуальных настроек каждого дисплея;
+- добавлена модель `DisplayProfile` с настройками layout, Smart Snap, Strict, Win+Arrow, Windows Snap suppression и guard-параметрами;
+- добавлены поля `activeDisplayProfileKey` и `displayProfiles` в конфиг;
+- добавлена безопасная миграция config 0.1.7 → 0.1.8 с резервной копией `config.json.backup-before-0.1.8.*.bak`;
+- сохранено старое поведение карантина для повреждённых JSON;
+- обновлён `config.default.json` под новую схему;
+- добавлена документация `docs/DISPLAY_PROFILES.md`;
+- это foundation-патч: текущая рабочая модель одного активного дисплея сохранена, multi-display routing будет включаться следующим этапом.
+
 ## 0.1.7
 
 - добавлен встроенный пункт **Обновления…** в главное окно и tray;
