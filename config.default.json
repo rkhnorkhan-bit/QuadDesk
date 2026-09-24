@@ -1,7 +1,8 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "enabled": true,
   "targetDevicePath": null,
+  "activeDisplayProfileKey": null,
   "activeLayoutId": "main-plus-3",
   "autoSnap": true,
   "smartSnap": true,
@@ -13,6 +14,7 @@
   "restoreWorkspaceOnStart": false,
   "minimumZoneWidth": 200,
   "minimumZoneHeight": 150,
+  "displayProfiles": [],
   "excludedProcesses": [],
   "rules": [],
   "hotkeys": {
