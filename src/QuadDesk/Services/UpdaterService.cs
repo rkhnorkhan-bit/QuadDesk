@@ -21,8 +21,6 @@ internal sealed record UpdateCheckResult(
 
 internal static class UpdaterService
 {
-    const string Owner = "rkhnorkhan-bit";
-    const string Repo = "QuadDesk";
     const string ApiLatestRelease = "https://api.github.com/repos/rkhnorkhan-bit/QuadDesk/releases/latest";
 
     static readonly JsonSerializerOptions JsonOptions = new()
@@ -52,7 +50,7 @@ internal static class UpdaterService
         var latest = ParseVersion(release.TagName);
         string latestText = latest.ToString(3);
 
-        if (latest <= current)
+        if (latest.CompareTo(current) <= 0)
             return new(UpdateState.UpToDate, currentText, latestText, release.HtmlUrl, null, null, null, "У вас актуальная версия.");
 
         string expectedSetup = $"QuadDesk-v{latestText}-win-x64-setup.exe";
