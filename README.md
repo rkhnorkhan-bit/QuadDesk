@@ -1,128 +1,166 @@
-# QuadDesk v0.1.5 — зоны окон на выбранном дисплее
+# QuadDesk
 
-**База:** функциональные изменения v0.1.4 ранее прошли 81 модульный тест. В v0.1.5 добавлены release-pipeline, installer и единая иконка. Windows-сборка и smoke-test должны пройти через `publish.ps1`/GitHub Actions перед публикацией релиза.
+QuadDesk is a Windows desktop utility for turning one physical display into a set of practical working zones.
 
-QuadDesk организует прямоугольные зоны внутри одного физического дисплея Windows 11 x64. Телевизор остаётся одним монитором. Драйверы, виртуальные дисплеи, захват экрана, Chromium, сеть и телеметрия приложению не нужны.
+It does **not** create virtual monitors, install display drivers, mirror the screen, capture video, or depend on OBS/VDD-style routing. Windows still sees one monitor. QuadDesk manages ordinary application windows on top of that monitor.
 
+The target use case is simple: a large TV or ultrawide display should behave like several clean work areas without the visual confusion of fake monitors.
 
-## Установщик и source-available release
+## Current status
 
-`publish.ps1` — единый release-builder: restore → build → test → self-contained publish → portable ZIP → Windows installer → SHA-256.
+The stable public release is available from **GitHub Releases**.
 
-Однократно установите Inno Setup 6:
+Development work happens in short-lived branches and pull requests. A branch may contain experimental behavior until it is merged and tagged as a release.
+
+## What QuadDesk does
+
+- splits a selected physical display into configurable zones;
+- keeps the primary monitor untouched unless explicitly selected;
+- moves the active window into a selected zone;
+- supports custom layouts and editable zone boundaries;
+- supports hotkeys for layouts, zones, movement and restore;
+- provides tray controls for quick operation;
+- saves and restores a workspace snapshot;
+- builds a self-contained Windows installer and portable package through GitHub Actions.
+
+## What QuadDesk intentionally avoids
+
+- no virtual display driver;
+- no fake multi-monitor topology;
+- no screen capture pipeline;
+- no browser runtime;
+- no telemetry;
+- no background network dependency for normal window management.
+
+## Layouts
+
+Built-in layouts include:
+
+| Layout | Description |
+|---|---|
+| Single | One full-display zone |
+| Dual Vertical | Two columns |
+| Dual Horizontal | Two rows |
+| Triple Columns | Three columns |
+| Triple Main | Large main area plus two secondary areas |
+| Quad 2x2 | Four equal zones |
+| Main + 3 | Large left area plus three stacked right areas |
+| Six 3x2 | Three columns by two rows |
+
+Custom layouts can be edited in the app. Zones can be split horizontally or vertically, renamed, resized and saved as separate layouts.
+
+## Basic usage
+
+1. Install QuadDesk or unpack the portable build.
+2. Start `QuadDesk.exe`.
+3. Select the display that QuadDesk should manage.
+4. Choose a layout.
+5. Move windows with the tray menu, hotkeys, auto-snap or the main window controls.
+
+The selected display is the only display managed by QuadDesk. Other monitors remain under normal Windows behavior.
+
+## Default hotkeys
+
+| Hotkey | Action |
+|---|---|
+| `Ctrl+Alt+0` | Enable or disable QuadDesk |
+| `Ctrl+Alt+Shift+1` | Single layout |
+| `Ctrl+Alt+Shift+2` | Dual Vertical |
+| `Ctrl+Alt+Shift+3` | Triple Main |
+| `Ctrl+Alt+Shift+4` | Quad 2x2 |
+| `Ctrl+Alt+Shift+5` | Main + 3 |
+| `Ctrl+Alt+Shift+6` | Six 3x2 |
+| `Ctrl+Alt+1` ... `Ctrl+Alt+9` | Move active window to zone 1 ... 9 |
+| `Ctrl+Alt+Arrow` | Move active window to a neighboring zone |
+| `Ctrl+Alt+M` | Maximize or restore inside the current zone |
+| `Ctrl+Alt+R` | Restore previous window size inside the zone |
+
+Hotkeys can be changed in the app. If Windows or another app already owns a combination, QuadDesk reports the conflict and lets you choose another binding.
+
+## Build from source
+
+Requirements:
+
+- Windows x64;
+- .NET SDK matching `global.json`;
+- Inno Setup 6 for installer builds.
+
+Install Inno Setup once:
 
 ```powershell
 winget install --id JRSoftware.InnoSetup -e
 ```
 
-Полная сборка:
+Build, test and package:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\publish.ps1
+pwsh -ExecutionPolicy Bypass -File .\publish.ps1
 ```
 
-Артефакты появляются в `artifacts\release\`.
+Release artifacts are written to:
 
-Версия хранится в одном месте — `Directory.Build.props`. GitHub Actions в `.github/workflows/release.yml` проверяет push/PR, а тег вида `v0.1.5` автоматически создаёт GitHub Release с installer, portable ZIP и SHA-256.
+```text
+artifacts\release\
+```
 
-Иконка хранится в `src/QuadDesk/Assets/QuadDesk.ico`, вшивается в `QuadDesk.exe` и используется установщиком, ярлыками, главным окном и треем.
+The release builder creates:
 
-## Получение EXE
+- portable ZIP;
+- Windows setup EXE;
+- SHA-256 checksums.
 
-На Windows установите **.NET 10 SDK x64** с официального сайта Microsoft. Он нужен только для сборки. Порядок — `BUILD.md`. `publish.ps1` выполняет restore → build → test → publish, останавливается при ошибках и создаёт `artifacts/release/QuadDesk-v0.1.5-win-x64-portable.zip` и `QuadDesk-v0.1.5-win-x64-setup.exe`. Оба содержат self-contained single-file EXE. Итоговому пользователю устанавливать .NET отдельно не требуется. Single-file использует штатное извлечение нативных библиотек .NET во временную папку профиля.
+## Release process
 
-После успешной сборки:
+Version numbers are stored in `Directory.Build.props`.
 
-1. Распакуйте полученный portable-архив в доступную для записи папку, например `C:\Tools\QuadDesk`.
-2. Запустите `QuadDesk.exe` без администратора.
-3. Выберите телевизор по названию, разрешению и признаку «дополнительный»; нажмите «Выбрать и включить зоны».
-4. Выберите **Main + 3** либо **Quad 2×2**.
-5. Нажмите «Показать зоны (5 сек)». Перетащите обычное окно на телевизор средствами Windows. Затем нажмите «Разместить окна по зонам» или используйте привязку и горячие клавиши.
-6. «Горячие клавиши…» → «Базовый набор» → «Проверить» → «Сохранить». Существующий config.json сохраняет старые сочетания до явного выбора нового набора.
+GitHub Actions builds and tests every push and pull request. A tag named `vX.Y.Z` creates a GitHub Release with the installer, portable archive and checksums.
 
-Основной монитор не управляется, пока вы явно не выберете его целевым. Горячие клавиши, правила и workspace не забирают окна с другого дисплея. Перетаскивание, начатое на другом дисплее, не привязывается автоматически: сначала перенесите окно на ТВ, затем назначьте зону.
+Main branch policy:
 
-## Раскладки
+```text
+main = stable source
+feature/* or fix/* = development work
+vX.Y.Z tag = public release
+```
 
-| Пресет | Геометрия |
-|---|---|
-| Single | Одна зона; QuadDesk остаётся включённым |
-| Dual Vertical | Две колонки |
-| Dual Horizontal | Две строки |
-| Triple Columns | Три колонки |
-| Triple Main | Большая зона слева, две справа |
-| Quad 2×2 | Четыре равные зоны |
-| Main + 3 | Левая зона 65%, три правые зоны в колонке 35% |
-| Six 3×2 | Три колонки × две строки |
+## Updates
 
-При 3840×2160 и полном размере монитора Main + 3: **2496×2160** слева и **три зоны 1344×720** справа. Quad: **четыре зоны 1920×1080**.
+The current stable way to update is to install the latest release from GitHub Releases over the existing installation.
 
-Количество зон не фиксировано: вложенные вертикальные и горизонтальные разбиения, до 256 листьев и 32 уровней как защита от некорректного дерева. Реальный предел задаёт выбранный минимальный размер (200×150 px по умолчанию). Пропорции независимы от разрешения; пиксельные размеры показываются в редакторе. Отдельного Pixel Mode нет.
+A built-in updater is planned. The intended behavior is:
 
-В редакторе выберите зону → «Разделить ↔» / «Разделить ↕». Перетаскивайте границы, задавайте имена. «Удалить / объединить» удаляет выбранный лист и разворачивает соседнюю ветвь на родительскую область. ID остальных зон сохраняются. Физические окна перестраиваются после сохранения. «Сохранить как» создаёт копию. В главном окне доступны создание, дублирование, переименование, удаление и восстановление отсутствующих пресетов.
+1. QuadDesk asks GitHub for the latest stable release.
+2. It ignores drafts, prereleases and failed CI builds.
+3. If the installed version is current, it reports that no update is needed.
+4. If a newer stable release exists, it downloads the signed release asset or installer.
+5. It closes QuadDesk, installs the update and starts the new version.
 
-## Управление
+Development artifacts from pull requests are for testing only and should not be used as automatic updates.
 
-| Комбинация | Действие |
-|---|---|
-| Ctrl+Alt+0 | Включить / выключить управление |
-| Ctrl+Alt+Shift+1 / 2 / 3 / 4 / 5 / 6 | Single / Dual / Triple Main / Quad / Main + 3 / Six |
-| Ctrl+Alt+1…9 | Активное окно → соответствующая зона |
-| Ctrl+Alt+стрелки | Перемещение по геометрии соседних зон |
-| Ctrl+Alt+M | Логическое разворачивание / восстановление |
-| Ctrl+Alt+R | Восстановить предыдущий размер внутри зоны |
+## Data and logs
 
-Отдельная кнопка «Горячие клавиши…» и вкладка настроек позволяют редактировать, записывать нажатием, очищать и проверять сочетания; дополнительные: `layout:ID`, `zone:N`. Пустая комбинация отключает действие. Windows или другое приложение может занять комбинацию: QuadDesk сообщает о конфликте, после чего назначьте другую. В трее есть действия для последнего активного внешнего окна.
+QuadDesk keeps local files next to the executable:
 
-Автопривязка охватывает всю зону под курсором, без дистанционного порога. Изменение размера окна не должно приводить к привязке. Overlay показывается только на целевом мониторе, не забирает фокус и не перехватывает мышь.
+```text
+config.json
+layouts\
+workspaces\
+logs\quad-desk.log
+```
 
-## Maximize: существенное ограничение
+No window titles, URLs, clipboard contents or keyboard input are written to logs. Logs are for application diagnostics only.
 
-В коде предусмотрена реакция на обычный maximize, двойной щелчок и Win+Up через `SetWinEventHook`, с последующим восстановлением нормального стиля и размещением в зоне. **Это ещё не проверено на Chrome, VS Code и Terminal.** Без внедрения в чужое приложение события приходят после изменения состояния; возможен краткий скачок на весь монитор.
+## Known limits
 
-Windows считает логически развёрнутое окно обычным. Иконка системной кнопки Restore не эмулируется. Повторный native maximize для уже логически развёрнутого окна трактуется как восстановление. Ctrl+Alt+R и команда трея дают явное восстановление. Поведение Win+Up у приложений и Windows Snap может отличаться. Строгая эквивалентность отдельному монитору не заявляется.
+- Elevated/admin windows may not be controllable from a non-elevated QuadDesk process.
+- Fullscreen games, borderless exclusive surfaces and protected media windows are not a reliable target for zone management.
+- Some applications enforce their own minimum window size or custom frame behavior.
+- QuadDesk manages normal desktop windows; it is not a replacement for a real display driver.
 
-Если приложение не принимает геометрию из-за минимального размера, предусмотрен возврат предыдущей геометрии и запись в журнал. Совместимость с необычными рамками требуется проверить.
+## License
 
-## Правила и workspace
+QuadDesk is source-available software.
 
-Правило содержит processName, необязательные windowClass/titleContains, LayoutId и стабильный ZoneId. Применяется только на выбранном дисплее при первом совпадении. Ручное перемещение конкретного HWND имеет приоритет до закрытия окна. Повторное создание окна — новый HWND и новое состояние.
+You may use it for personal use and internal business use. You may inspect, modify and fork the code. Commercial distribution, resale, paid bundles, paid hosted services and white-label redistribution require separate written permission from the copyright holder.
 
-Workspace хранит раскладку, процесс/путь/класс, номер окна среди одинаковых, относительный прямоугольник и логический maximize. Заголовки окон не сохраняются. Отсутствующие приложения не запускаются. Неоднозначные окна одного приложения сопоставляются по порядку Z-order, который может измениться; вкладки Chrome не различаются. Сохранение workspace перезаписывает `workspaces/default.json`: именованных профилей в UI этой версии нет.
-
-## Совместимость и безопасность
-
-- Без администратора. Окна с повышенными привилегиями могут не управляться; не повышайте права QuadDesk ради них.
-- Исключаются служебные, дочерние, owned, tool, cloaked, минимизированные, нерастягиваемые и borderless-окна. Это намеренно консервативный фильтр и ограничивает некоторые приложения.
-- Оконные игры с обычной рамкой нельзя надёжно распознать по общему Win32-признаку. Добавьте процесс в исключения или выключите QuadDesk перед игрой. Защищённое видео в обычном окне также нельзя универсально определить.
-- При блокировке/защищённом desktop перемещение приостанавливается.
-- При отключении телевизора работа приостанавливается. После подключения возвращается выбранный layout; окна с основного дисплея автоматически не забираются.
-- Монитор привязан к device interface path из EnumDisplayDevices, а не DISPLAY1/2. После смены порта/драйвера идентификатор может поменяться — выберите дисплей заново. QueryDisplayConfig в этой версии не используется; название может быть «Generic PnP Monitor».
-- «Выключить» прекращает вмешательство, сохраняет текущие позиции окон и сбрасывает логический maximize. Для настоящего fullscreen после выключения используйте штатный maximize/F11 приложения.
-- Чтобы убрать панель задач с ТВ: Параметры Windows → Персонализация → Панель задач → Поведение → «Показывать на всех дисплеях»: выкл. QuadDesk эту настройку не меняет.
-
-`Start with Windows` создаёт только `QuadDesk.lnk` в Startup текущего пользователя. Перед переносом папки выключите автозапуск. При отключении удаляется только ярлык, указывающий на текущую копию EXE.
-
-## Файлы и диагностика
-
-`config.json`, `layouts/`, `workspaces/`, `logs/` находятся рядом с EXE. Повреждённые конфигурации/раскладки переименовываются в `.bad.TIMESTAMP-ID`. Проблемная раскладка не должна отключать остальные. Настройки пишутся через временный файл и замену; текущий файл не обнуляется до успешной сериализации.
-
-Журнал: `logs/quad-desk.log`, ротация 2 MiB + один предыдущий файл. Заголовки окон, URL, текст, clipboard и клавиатурный ввод в журнал не записываются. Правило titleContains проверяет заголовок в памяти только для сопоставления.
-
-CPU, RAM и GPU **не измерены**. Архитектура событийная, без периодического polling и захвата экрана. Нагрузка от частых WinEvent другого приложения требует измерения на Windows.
-
-Перед повседневным использованием выполните `docs/SMOKE_TEST.md` и проверьте `docs/FINAL_REPORT.md`.
-
-## Лицензия
-
-QuadDesk распространяется по **QuadDesk Source-Available License v1.0**.
-
-Разрешены бесплатное личное использование, внутреннее использование
-компаниями, изучение исходного кода, модификация, fork и некоммерческое
-распространение.
-
-Продажа, перепродажа, платное распространение, коммерческий white-label,
-включение в платные продукты и иная коммерческая дистрибуция требуют
-отдельного письменного разрешения правообладателя.
-
-Это source-available проект, а не OSI-approved open-source проект.
+See `LICENSE` for the full terms.
