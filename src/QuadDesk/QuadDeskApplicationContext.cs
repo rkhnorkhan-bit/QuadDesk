@@ -7,6 +7,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
     readonly EventHost host = new();
     readonly QuadDeskController controller;
     readonly StrictSubmonitorService strict;
+    readonly WindowsSnapService windowsSnap;
     readonly MainForm main;
     readonly NotifyIcon tray;
     readonly Icon trayIcon;
@@ -16,6 +17,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
     {
         controller = new(new Storage(), host);
         strict = new(controller);
+        windowsSnap = new(controller);
         host.InterceptCommand = strict.HandleWinCommand;
         main = new(controller);
         trayIcon = (Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application).Clone() as Icon ?? SystemIcons.Application;
@@ -39,6 +41,12 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         controller.Config.CaptureWinArrow = !controller.Config.CaptureWinArrow;
         controller.Save();
     }
+    void ToggleWindowsSnap()
+    {
+        controller.Config.SuspendWindowsSnap = !controller.Config.SuspendWindowsSnap;
+        controller.Save();
+        windowsSnap.Sync();
+    }
     void BuildMenu()
     {
         foreach (ToolStripItem item in menu.Items.Cast<ToolStripItem>().ToArray()) { menu.Items.Remove(item); item.Dispose(); }
@@ -59,6 +67,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         Add("Автопривязка", () => { controller.Config.AutoSnap = !controller.Config.AutoSnap; controller.Save(); }, controller.Config.AutoSnap);
         Add("Strict Submonitors", ToggleStrict, controller.Config.StrictSubmonitors);
         Add("Win+Arrow внутри зон", ToggleWinArrow, controller.Config.CaptureWinArrow);
+        Add("Отключать системный Windows Snap", ToggleWindowsSnap, controller.Config.SuspendWindowsSnap);
         menu.Items.Add(new ToolStripSeparator());
         Add("Редактор раскладки…", () => { ShowMain(); main.Edit(); });
         Add("Правила…", () => { ShowMain(); main.Rules(); }); Add("Настройки…", () => { ShowMain(); main.Settings(); });
@@ -70,6 +79,6 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
     }
     protected override void ExitThreadCore()
     {
-        tray.Visible = false; strict.Dispose(); controller.Dispose(); main.Dispose(); tray.Dispose(); trayIcon.Dispose(); menu.Dispose(); host.Dispose(); base.ExitThreadCore();
+        tray.Visible = false; windowsSnap.Dispose(); strict.Dispose(); controller.Dispose(); main.Dispose(); tray.Dispose(); trayIcon.Dispose(); menu.Dispose(); host.Dispose(); base.ExitThreadCore();
     }
 }
