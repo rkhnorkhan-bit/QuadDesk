@@ -1,141 +1,84 @@
-QuadDesk Source-Available License
-Version 1.0
+QuadDesk Source-Available License 1.0
 
-Copyright (c) 2026 Orkhan Aliev
-All rights reserved except as expressly granted below.
+Copyright (c) 2026 Orkhan Aliev.
 
-1. DEFINITIONS
+This license applies to QuadDesk, including its source code, compiled binaries,
+documentation, assets and derivative works.
 
-"Software" means QuadDesk, including its source code, executable files,
-documentation, assets, and any modifications or derivative works based on it.
+1. Permission
 
-"Licensor" means Orkhan Aliev.
+You may, without charge:
 
-"Commercial Distribution" means providing, distributing, licensing,
-sublicensing, selling, reselling, renting, leasing, bundling, white-labeling,
-hosting, or otherwise making the Software or a derivative work available to
-third parties in exchange for money, compensation, commercial consideration,
-or as part of a paid product or service.
+- use QuadDesk for personal purposes;
+- use QuadDesk inside a company or organization for internal work;
+- read and study the source code;
+- modify the source code;
+- create forks;
+- submit contributions to the official project;
+- share original or modified copies for free.
 
-"Internal Business Use" means use of the Software by an individual,
-company, organization, its employees, or contractors for that organization's
-own internal operations, without commercially distributing the Software to
-third parties.
+2. Conditions
 
-2. PERMITTED USE
+If you share QuadDesk or a modified version, you must:
 
-Subject to the terms of this License, you may:
+- keep this license and copyright notice with the software;
+- clearly mark modified versions as modified;
+- not imply that your version is an official QuadDesk release unless it was
+  published by the project owner;
+- provide the corresponding source code when you distribute compiled binaries.
 
-a. download, install, run, and use the Software for personal purposes;
+3. Commercial distribution is not allowed without permission
 
-b. use the Software for Internal Business Use, including use by commercial
-   companies and organizations;
+This license does not allow commercial distribution.
 
-c. inspect, study, test, and modify the source code;
+You need prior written permission from the copyright holder to:
 
-d. create forks and derivative works;
+- sell QuadDesk;
+- resell QuadDesk;
+- charge for access, download, installation or delivery of QuadDesk;
+- distribute QuadDesk as part of a paid product, paid bundle or subscription;
+- offer QuadDesk as a paid hosted, managed, remote-access or SaaS service;
+- sell a modified, forked, rebranded or white-label version;
+- use QuadDesk source code as the basis for a product distributed commercially
+  to third parties.
 
-e. contribute changes back to the QuadDesk project;
+Internal use by a commercial company is allowed. A company may use QuadDesk on
+its own computers for its own work. That is not commercial distribution.
 
-f. redistribute original or modified copies of the Software on a
-   non-commercial basis, provided that:
+4. Contributions
 
-   - no fee, payment, subscription, compensation, or other commercial
-     consideration is required for access to the Software;
+Contributions to the official QuadDesk repository are also covered by the
+contribution terms in CONTRIBUTING.md.
 
-   - this License and all copyright notices remain included;
+5. Name and branding
 
-   - modified versions are clearly identified as modified;
+This license does not grant trademark rights. You may refer to QuadDesk by name
+when describing compatibility, origin or changes, but you may not present a fork
+or modified build as an official QuadDesk release.
 
-   - if executable or binary versions are redistributed, the corresponding
-     source code must also be made available under this same License.
+6. No warranty
 
-3. COMMERCIAL DISTRIBUTION IS NOT GRANTED
+QuadDesk is provided as is, without warranties or guarantees of any kind.
 
-This License does not grant permission to engage in Commercial Distribution.
+7. Liability
 
-Without prior written permission from the Licensor, you may not:
+To the maximum extent allowed by law, the copyright holder is not liable for any
+claim, damage, loss or other liability arising from QuadDesk or its use.
 
-a. sell or resell the Software;
+8. Termination
 
-b. charge users for downloading, installing, accessing, or receiving
-   the Software;
+Your rights under this license end if you materially violate its terms. Rights
+may be restored if the violation is fully corrected within 30 days after written
+notice from the copyright holder.
 
-c. sell or commercially distribute a modified version, fork, derivative,
-   or rebranded version of the Software;
+9. Reserved rights
 
-d. include the Software in a paid software bundle, commercial package,
-   subscription, appliance, or other paid offering;
+All rights not expressly granted by this license are reserved.
 
-e. provide a paid hosted, managed, SaaS, remote-access, or similar service
-   whose material functionality is provided by the Software;
+The copyright holder may offer QuadDesk under different terms, including a
+separate commercial license.
 
-f. sublicense the Software for commercial distribution;
+10. Source-available status
 
-g. use the Software or its source code as the basis of a product that is
-   commercially distributed to third parties.
-
-Commercial rights may be obtained separately from the Licensor under a
-written commercial license.
-
-4. INTERNAL COMMERCIAL USE
-
-For clarity, a company or commercial organization may use the Software
-internally in the course of its business.
-
-Such internal use does not constitute Commercial Distribution merely because
-the organization itself operates for profit.
-
-5. ATTRIBUTION AND NOTICES
-
-You must preserve all copyright, license, authorship, and attribution notices
-included with the Software.
-
-You may not represent yourself or another party as the original author of
-QuadDesk.
-
-6. TRADEMARKS AND BRANDING
-
-This License does not grant rights to use the QuadDesk name, logo, trademarks,
-or other branding in a manner that implies endorsement, sponsorship, or an
-official relationship with the Licensor.
-
-Reasonable descriptive references to QuadDesk are permitted.
-
-7. CONTRIBUTIONS
-
-Contributions submitted to the official QuadDesk repository are additionally
-subject to the contribution terms described in CONTRIBUTING.md.
-
-8. NO WARRANTY
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
-
-9. LIMITATION OF LIABILITY
-
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE LICENSOR SHALL NOT BE LIABLE FOR
-ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM OR RELATED TO THE SOFTWARE
-OR ITS USE.
-
-10. TERMINATION
-
-Your rights under this License terminate if you materially violate its terms.
-
-For a first violation, your rights may be restored if you fully correct the
-violation within 30 days after receiving written notice from the Licensor.
-
-11. RESERVATION OF RIGHTS
-
-All rights not expressly granted by this License are reserved by the Licensor.
-
-The Licensor may offer the Software under different or additional license
-terms, including commercial licenses.
-
-12. SOURCE-AVAILABLE STATUS
-
-This License makes the source code available but is not an Open Source
-Initiative (OSI) approved open-source license.
-
-END OF LICENSE
+QuadDesk source code is available for inspection, modification and permitted
+use under this license. This is not an Open Source Initiative approved license.
