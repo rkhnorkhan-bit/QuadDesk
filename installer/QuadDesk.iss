@@ -44,9 +44,11 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 
 [Files]
 Source: "{#PublishDir}\QuadDesk.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PublishDir}\QuadDesk.Updater.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PublishDir}\config.default.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PublishDir}\layouts\*"; DestDir: "{app}\layouts"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#PublishDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PublishDir}\README.ru.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#PublishDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
