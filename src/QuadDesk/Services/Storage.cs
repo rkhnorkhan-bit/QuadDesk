@@ -46,13 +46,47 @@ internal sealed class Storage
     }
     public static void ValidateConfig(AppConfig c)
     {
-        if (c.SchemaVersion != 1 || c.MinimumZoneWidth < 40 || c.MinimumZoneWidth > 4000 || c.MinimumZoneHeight < 40 || c.MinimumZoneHeight > 4000 || c.GuardIntervalMs < 50 || c.GuardIntervalMs > 1000 || c.Rules is null || c.Hotkeys is null || c.ExcludedProcesses is null || string.IsNullOrWhiteSpace(c.ActiveLayoutId)) throw new InvalidDataException("Некорректные настройки.");
-        if (c.Rules.Any(r => r is null || string.IsNullOrWhiteSpace(r.ProcessName) || string.IsNullOrWhiteSpace(r.LayoutId) || string.IsNullOrWhiteSpace(r.ZoneId)) || c.ExcludedProcesses.Any(p => p is null) || c.Hotkeys.Any(h => string.IsNullOrWhiteSpace(h.Key) || h.Value is null)) throw new InvalidDataException("Некорректные правила или клавиши.");
+        if (c.SchemaVersion != 2 ||
+            c.MinimumZoneWidth < 40 || c.MinimumZoneWidth > 4000 ||
+            c.MinimumZoneHeight < 40 || c.MinimumZoneHeight > 4000 ||
+            c.GuardIntervalMs < 50 || c.GuardIntervalMs > 1000 ||
+            c.Rules is null || c.Hotkeys is null || c.ExcludedProcesses is null || c.DisplayProfiles is null ||
+            string.IsNullOrWhiteSpace(c.ActiveLayoutId))
+            throw new InvalidDataException("Некорректные настройки.");
+
+        if (c.Rules.Any(r => r is null || string.IsNullOrWhiteSpace(r.ProcessName) || string.IsNullOrWhiteSpace(r.LayoutId) || string.IsNullOrWhiteSpace(r.ZoneId)) ||
+            c.ExcludedProcesses.Any(p => p is null) ||
+            c.Hotkeys.Any(h => string.IsNullOrWhiteSpace(h.Key) || h.Value is null) ||
+            c.DisplayProfiles.Any(p =>
+                p is null ||
+                string.IsNullOrWhiteSpace(p.Key) ||
+                string.IsNullOrWhiteSpace(p.DevicePath) ||
+                string.IsNullOrWhiteSpace(p.ActiveLayoutId) ||
+                p.GuardIntervalMs < 50 || p.GuardIntervalMs > 1000 ||
+                p.MinimumZoneWidth < 40 || p.MinimumZoneWidth > 4000 ||
+                p.MinimumZoneHeight < 40 || p.MinimumZoneHeight > 4000))
+            throw new InvalidDataException("Некорректные правила, клавиши или профили дисплеев.");
+
+        if (c.DisplayProfiles.Select(p => p.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count() != c.DisplayProfiles.Count)
+            throw new InvalidDataException("Повтор профиля дисплея.");
     }
     public AppConfig LoadConfig()
     {
         if (!File.Exists(ConfigPath)) return new();
-        try { var c = Read<AppConfig>(ConfigPath); ValidateConfig(c); return c; }
+        try
+        {
+            var c = Read<AppConfig>(ConfigPath);
+            if (c.SchemaVersion == 1)
+            {
+                Backup(ConfigPath, "backup-before-0.1.8");
+                c.SchemaVersion = 2;
+                c.DisplayProfiles ??= [];
+                Save(ConfigPath, c);
+                Warnings.Add("Config обновлён до схемы 0.1.8; резервная копия сохранена рядом с config.json.");
+            }
+            ValidateConfig(c);
+            return c;
+        }
         catch (Exception ex) when (ex is JsonException or InvalidDataException or IOException or ArgumentException or NotSupportedException)
         { Quarantine(ConfigPath); Warnings.Add("Повреждённый config сохранён как .bad; загружены безопасные настройки без выбранного монитора."); return new(); }
     }
@@ -86,4 +120,9 @@ internal sealed class Storage
     public void SaveLayout(LayoutDefinition l) { LayoutEngine.Validate(l); l.UpdatedAt = DateTimeOffset.UtcNow; Save(LayoutPath(l.Id), l); }
     public void DeleteLayout(LayoutDefinition l) => File.Delete(LayoutPath(l.Id));
     void Quarantine(string path) { File.Move(path, path + ".bad." + DateTime.UtcNow.ToString("yyyyMMddHHmmssfff") + "-" + Guid.NewGuid().ToString("N")); Log.Write("Invalid JSON quarantined"); }
+    static void Backup(string path, string suffix)
+    {
+        if (!File.Exists(path)) return;
+        File.Copy(path, path + "." + suffix + "." + DateTime.UtcNow.ToString("yyyyMMddHHmmssfff") + ".bak", overwrite: false);
+    }
 }
