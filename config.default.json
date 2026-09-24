@@ -7,6 +7,7 @@
   "smartSnap": true,
   "strictSubmonitors": false,
   "captureWinArrow": false,
+  "suspendWindowsSnap": false,
   "guardIntervalMs": 100,
   "useFullMonitorBounds": true,
   "restoreWorkspaceOnStart": false,
