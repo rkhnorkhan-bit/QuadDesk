@@ -39,12 +39,18 @@ function Find-Iscc {
     return ($candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1)
 }
 
-function Invoke-DotnetPublish {
+function Invoke-DotnetPublishProject {
     param(
+        [Parameter(Mandatory = $true)][string]$ProjectPath,
         [Parameter(Mandatory = $true)][string]$OutputDirectory
     )
 
-    & dotnet publish 'src/QuadDesk/QuadDesk.csproj' `
+    & dotnet restore $ProjectPath -r win-x64
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet restore failed for $ProjectPath with exit code $LASTEXITCODE."
+    }
+
+    & dotnet publish $ProjectPath `
         -c Release `
         -r win-x64 `
         --self-contained true `
@@ -57,7 +63,7 @@ function Invoke-DotnetPublish {
         -o $OutputDirectory
 
     if ($LASTEXITCODE -ne 0) {
-        throw "dotnet publish failed with exit code $LASTEXITCODE."
+        throw "dotnet publish failed for $ProjectPath with exit code $LASTEXITCODE."
     }
 }
 
@@ -68,21 +74,32 @@ Write-Host "=== QuadDesk v$version release build ==="
 
 $releaseRoot = Join-Path $PSScriptRoot 'artifacts\release'
 $publishRoot = Join-Path $PSScriptRoot 'artifacts\publish\QuadDesk'
+$updaterRoot = Join-Path $PSScriptRoot 'artifacts\publish\QuadDesk.Updater'
 
 Remove-Item -LiteralPath $publishRoot -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $updaterRoot -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $releaseRoot -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $publishRoot -Force | Out-Null
+New-Item -ItemType Directory -Path $updaterRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
 
-Invoke-DotnetPublish -OutputDirectory $publishRoot
+Invoke-DotnetPublishProject -ProjectPath 'src/QuadDesk/QuadDesk.csproj' -OutputDirectory $publishRoot
+Invoke-DotnetPublishProject -ProjectPath 'src/QuadDesk.Updater/QuadDesk.Updater.csproj' -OutputDirectory $updaterRoot
 
 $exe = Join-Path $publishRoot 'QuadDesk.exe'
 if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
     throw 'QuadDesk.exe was not created.'
 }
 
+$updaterExe = Join-Path $updaterRoot 'QuadDesk.Updater.exe'
+if (-not (Test-Path -LiteralPath $updaterExe -PathType Leaf)) {
+    throw 'QuadDesk.Updater.exe was not created.'
+}
+Copy-Item -LiteralPath $updaterExe -Destination (Join-Path $publishRoot 'QuadDesk.Updater.exe') -Force
+
 Copy-Item -LiteralPath 'config.default.json' -Destination $publishRoot -Force
 Copy-Item -LiteralPath 'README.md' -Destination $publishRoot -Force
+if (Test-Path -LiteralPath 'README.ru.md') { Copy-Item -LiteralPath 'README.ru.md' -Destination $publishRoot -Force }
 Copy-Item -LiteralPath 'LICENSE' -Destination $publishRoot -Force
 Copy-Item -LiteralPath 'layouts' -Destination $publishRoot -Recurse -Force
 

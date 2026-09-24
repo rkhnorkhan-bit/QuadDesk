@@ -70,7 +70,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         Add("Отключать системный Windows Snap", ToggleWindowsSnap, controller.Config.SuspendWindowsSnap);
         menu.Items.Add(new ToolStripSeparator());
         Add("Редактор раскладки…", () => { ShowMain(); main.Edit(); });
-        Add("Правила…", () => { ShowMain(); main.Rules(); }); Add("Настройки…", () => { ShowMain(); main.Settings(); });
+        Add("Правила…", () => { ShowMain(); main.Rules(); }); Add("Настройки…", () => { ShowMain(); main.Settings(); }); Add("Обновления…", () => { ShowMain(); main.Updates(); });
         Add("Выбрать дисплей…", main.SelectMonitor); Add("Сохранить workspace", controller.SaveWorkspace); Add("Восстановить workspace", controller.TryRestoreWorkspace);
         Add("Запускать с Windows", () => StartupService.Set(!StartupService.Enabled), StartupService.Enabled);
         Add("Открыть config.json", () => { controller.Save(); Process.Start(new ProcessStartInfo(controller.Store.ConfigPath) { UseShellExecute = true }); });

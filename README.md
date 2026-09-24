@@ -23,6 +23,7 @@ Development work happens in short-lived branches and pull requests. A branch may
 - supports hotkeys for layouts, zones, movement and restore;
 - provides tray controls for quick operation;
 - saves and restores a workspace snapshot;
+- checks stable GitHub Releases for updates;
 - builds a self-contained Windows installer and portable package through GitHub Actions.
 
 ## What QuadDesk intentionally avoids
@@ -127,9 +128,20 @@ vX.Y.Z tag = public release
 
 ## Updates
 
-The current stable way to update is to install the latest release from GitHub Releases over the existing installation.
+Installed builds include **Обновления…**.
 
-A built-in updater is planned. It should use stable releases only and avoid pulling unreviewed pull-request artifacts into normal installations.
+The updater checks stable GitHub Releases only. It does not install pull-request artifacts, drafts or preview builds.
+
+Update flow:
+
+1. QuadDesk finds the latest stable release.
+2. QuadDesk downloads the setup EXE and `SHA256SUMS.txt`.
+3. QuadDesk verifies the setup EXE SHA-256.
+4. QuadDesk copies `QuadDesk.Updater.exe` to a temporary path.
+5. QuadDesk exits.
+6. The temporary updater runs the installer and starts the updated QuadDesk.
+
+The updater is a separate executable so future releases can replace both `QuadDesk.exe` and `QuadDesk.Updater.exe` without requiring a manual uninstall/reinstall.
 
 ## Data and logs
 

@@ -23,7 +23,7 @@ internal sealed class MainForm : Form
         B("Дублировать", () => { var l = JsonData.Clone(controller.Layout); l.Id = Guid.NewGuid().ToString("N"); l.Name += " — копия"; l.CreatedAt = DateTimeOffset.UtcNow; controller.StoreLayout(l); });
         B("Переименовать", () => { var value = Dialogs.Ask(this, "Имя раскладки", controller.Layout.Name); if (value is null) return; var l = JsonData.Clone(controller.Layout); l.Name = value; controller.StoreLayout(l); });
         B("Удалить", () => { if (MessageBox.Show(this, $"Удалить раскладку «{controller.Layout.Name}»?", "QuadDesk", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) controller.DeleteLayout(controller.Layout); });
-        B("Правила…", Rules); B("Настройки…", Settings); B("Сохранить workspace", () => { controller.SaveWorkspace(); MessageBox.Show(this, "Рабочее пространство сохранено.", "QuadDesk"); });
+        B("Правила…", Rules); B("Настройки…", Settings); B("Обновления…", Updates); B("Сохранить workspace", () => { controller.SaveWorkspace(); MessageBox.Show(this, "Рабочее пространство сохранено.", "QuadDesk"); });
         B("Восстановить workspace", controller.TryRestoreWorkspace);
         B("Восстановить пресеты", () => { foreach (var l in Presets.All()) if (!controller.Layouts.Any(x => x.Id == l.Id)) controller.StoreLayout(l); });
         layouts.SelectedIndexChanged += (_, _) => { if (!updating && layouts.SelectedItem is LayoutDefinition l) Safe(() => controller.SelectLayout(l.Id)); };
@@ -50,6 +50,10 @@ internal sealed class MainForm : Form
     public void Settings()
     {
         using var dialog = new SettingsForm(controller); if (dialog.ShowDialog(this) == DialogResult.OK) controller.ApplySettings(dialog.Result);
+    }
+    public void Updates()
+    {
+        using var dialog = new UpdateForm(); dialog.ShowDialog(this);
     }
     public void Rules()
     {
