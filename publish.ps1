@@ -45,6 +45,11 @@ function Invoke-DotnetPublishProject {
         [Parameter(Mandatory = $true)][string]$OutputDirectory
     )
 
+    & dotnet restore $ProjectPath -r win-x64
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet restore failed for $ProjectPath with exit code $LASTEXITCODE."
+    }
+
     & dotnet publish $ProjectPath `
         -c Release `
         -r win-x64 `
