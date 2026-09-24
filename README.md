@@ -1,5 +1,7 @@
 # QuadDesk
 
+[English](README.md) · [Русский](README.ru.md)
+
 QuadDesk is a Windows desktop utility for turning one physical display into a set of practical working zones.
 
 It does **not** create virtual monitors, install display drivers, mirror the screen, capture video, or depend on OBS/VDD-style routing. Windows still sees one monitor. QuadDesk manages ordinary application windows on top of that monitor.
@@ -127,15 +129,7 @@ vX.Y.Z tag = public release
 
 The current stable way to update is to install the latest release from GitHub Releases over the existing installation.
 
-A built-in updater is planned. The intended behavior is:
-
-1. QuadDesk asks GitHub for the latest stable release.
-2. It ignores drafts, prereleases and failed CI builds.
-3. If the installed version is current, it reports that no update is needed.
-4. If a newer stable release exists, it downloads the signed release asset or installer.
-5. It closes QuadDesk, installs the update and starts the new version.
-
-Development artifacts from pull requests are for testing only and should not be used as automatic updates.
+A built-in updater is planned. It should use stable releases only and avoid pulling unreviewed pull-request artifacts into normal installations.
 
 ## Data and logs
 
