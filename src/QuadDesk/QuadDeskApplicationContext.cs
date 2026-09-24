@@ -6,6 +6,8 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
 {
     readonly EventHost host = new();
     readonly QuadDeskController controller;
+    readonly StrictSubmonitorService strict;
+    readonly WindowsSnapService windowsSnap;
     readonly MainForm main;
     readonly NotifyIcon tray;
     readonly Icon trayIcon;
@@ -13,7 +15,11 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
     nint menuForeground;
     public QuadDeskApplicationContext()
     {
-        controller = new(new Storage(), host); main = new(controller);
+        controller = new(new Storage(), host);
+        strict = new(controller);
+        windowsSnap = new(controller);
+        host.InterceptCommand = strict.HandleWinCommand;
+        main = new(controller);
         trayIcon = (Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application).Clone() as Icon ?? SystemIcons.Application;
         tray = new() { Text = "QuadDesk", Icon = trayIcon, ContextMenuStrip = menu, Visible = true };
         tray.DoubleClick += (_, _) => ShowMain();
@@ -25,6 +31,22 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
     }
     void ShowMain() { main.Show(); main.WindowState = FormWindowState.Normal; main.Activate(); }
     void Notice(string text) { tray.ShowBalloonTip(6000, "QuadDesk", text, ToolTipIcon.Warning); }
+    void ToggleStrict()
+    {
+        controller.Config.StrictSubmonitors = !controller.Config.StrictSubmonitors;
+        controller.Save();
+    }
+    void ToggleWinArrow()
+    {
+        controller.Config.CaptureWinArrow = !controller.Config.CaptureWinArrow;
+        controller.Save();
+    }
+    void ToggleWindowsSnap()
+    {
+        controller.Config.SuspendWindowsSnap = !controller.Config.SuspendWindowsSnap;
+        controller.Save();
+        windowsSnap.Sync();
+    }
     void BuildMenu()
     {
         foreach (ToolStripItem item in menu.Items.Cast<ToolStripItem>().ToArray()) { menu.Items.Remove(item); item.Dispose(); }
@@ -43,17 +65,20 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         Add("Развернуть / восстановить в зоне", () => controller.ExecuteFor("maximize", menuForeground));
         Add("Восстановить размер", () => controller.ExecuteFor("restore", menuForeground));
         Add("Автопривязка", () => { controller.Config.AutoSnap = !controller.Config.AutoSnap; controller.Save(); }, controller.Config.AutoSnap);
+        Add("Strict Submonitors", ToggleStrict, controller.Config.StrictSubmonitors);
+        Add("Win+Arrow внутри зон", ToggleWinArrow, controller.Config.CaptureWinArrow);
+        Add("Отключать системный Windows Snap", ToggleWindowsSnap, controller.Config.SuspendWindowsSnap);
         menu.Items.Add(new ToolStripSeparator());
         Add("Редактор раскладки…", () => { ShowMain(); main.Edit(); });
         Add("Правила…", () => { ShowMain(); main.Rules(); }); Add("Настройки…", () => { ShowMain(); main.Settings(); });
         Add("Выбрать дисплей…", main.SelectMonitor); Add("Сохранить workspace", controller.SaveWorkspace); Add("Восстановить workspace", controller.TryRestoreWorkspace);
         Add("Запускать с Windows", () => StartupService.Set(!StartupService.Enabled), StartupService.Enabled);
         Add("Открыть config.json", () => { controller.Save(); Process.Start(new ProcessStartInfo(controller.Store.ConfigPath) { UseShellExecute = true }); });
-        Add("О программе", () => MessageBox.Show(main, $"{AppInfo.DisplayName}\nЛогические зоны одного физического дисплея.\nMIT. Без телеметрии.\nГорячие клавиши настраиваются через меню.\nПеред играми выключайте QuadDesk.\nИзменения config.json вручную применяются после перезапуска.", "QuadDesk"));
+        Add("О программе", () => MessageBox.Show(main, $"{AppInfo.DisplayName}\nЛогические зоны одного физического дисплея.\nSource-available. Без телеметрии.\nГорячие клавиши настраиваются через меню.\nПеред играми выключайте QuadDesk.\nИзменения config.json вручную применяются после перезапуска.", "QuadDesk"));
         menu.Items.Add(new ToolStripSeparator()); Add("Выход", ExitThread);
     }
     protected override void ExitThreadCore()
     {
-        tray.Visible = false; controller.Dispose(); main.Dispose(); tray.Dispose(); trayIcon.Dispose(); menu.Dispose(); host.Dispose(); base.ExitThreadCore();
+        tray.Visible = false; windowsSnap.Dispose(); strict.Dispose(); controller.Dispose(); main.Dispose(); tray.Dispose(); trayIcon.Dispose(); menu.Dispose(); host.Dispose(); base.ExitThreadCore();
     }
 }

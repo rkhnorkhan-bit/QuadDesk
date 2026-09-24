@@ -83,32 +83,36 @@ internal sealed class LayoutEditorForm : Form
 internal sealed class SettingsForm : Form
 {
     public AppConfig Result { get; private set; }
-    readonly CheckBox full, snap, restore;
-    readonly NumericUpDown width, height;
+    readonly CheckBox full, snap, smart, strict, winArrow, restore;
+    readonly NumericUpDown width, height, guard;
     readonly TextBox exclude;
     readonly HotkeysEditor hotkeysEditor;
     public SettingsForm(QuadDeskController controller)
     {
         var source = controller.Config; hotkeysEditor = new(controller) { Dock = DockStyle.Fill };
-        Result = JsonData.Clone(source); Text = "Настройки QuadDesk"; ClientSize = new(760, 670); StartPosition = FormStartPosition.CenterParent; AutoScaleMode = AutoScaleMode.Dpi;
+        Result = JsonData.Clone(source); Text = "Настройки QuadDesk"; ClientSize = new(760, 720); StartPosition = FormStartPosition.CenterParent; AutoScaleMode = AutoScaleMode.Dpi;
         var tabs = new TabControl { Dock = DockStyle.Fill };
         var general = new TabPage("Общие"); var hotkeys = new TabPage("Горячие клавиши"); tabs.TabPages.AddRange([general, hotkeys]);
         var flow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, Padding = new(16), AutoScroll = true };
         full = new() { Text = "Использовать весь монитор, включая область панели задач", Checked = source.UseFullMonitorBounds, AutoSize = true };
         snap = new() { Text = "Привязка при завершении перетаскивания на выбранном дисплее", Checked = source.AutoSnap, AutoSize = true };
+        smart = new() { Text = "Smart Snap: Windows Snap и границы работают внутри каждой зоны", Checked = source.SmartSnap, AutoSize = true };
+        strict = new() { Text = "Strict Submonitors: жёстко удерживать окна внутри подмониторов", Checked = source.StrictSubmonitors, AutoSize = true };
+        winArrow = new() { Text = "Перехватывать Win+Arrow на выбранном мониторе", Checked = source.CaptureWinArrow, AutoSize = true };
         restore = new() { Text = "Восстанавливать workspace при запуске", Checked = source.RestoreWorkspaceOnStart, AutoSize = true };
         width = new() { Minimum = 40, Maximum = 4000, Value = source.MinimumZoneWidth, Width = 120 };
         height = new() { Minimum = 40, Maximum = 4000, Value = source.MinimumZoneHeight, Width = 120 };
+        guard = new() { Minimum = 50, Maximum = 1000, Increment = 25, Value = Math.Clamp(source.GuardIntervalMs, 50, 1000), Width = 120 };
         exclude = new() { Multiline = true, Width = 650, Height = 130, ScrollBars = ScrollBars.Vertical, Text = string.Join(Environment.NewLine, source.ExcludedProcesses) };
-        flow.Controls.AddRange([full, snap, restore, new Label { Text = "Минимальная ширина зоны (px)", AutoSize = true }, width, new Label { Text = "Минимальная высота зоны (px)", AutoSize = true }, height, new Label { Text = "Исключения: имя процесса на строку (например game.exe)", AutoSize = true }, exclude,
+        flow.Controls.AddRange([full, snap, smart, strict, winArrow, restore, new Label { Text = "Частота Strict Guard (ms)", AutoSize = true }, guard, new Label { Text = "Минимальная ширина зоны (px)", AutoSize = true }, width, new Label { Text = "Минимальная высота зоны (px)", AutoSize = true }, height, new Label { Text = "Исключения: имя процесса на строку (например game.exe)", AutoSize = true }, exclude,
             new Label { Text = "Панель задач на ТВ: Параметры Windows → Персонализация →\nПанель задач → Поведение → показывать на всех дисплеях: выкл.", AutoSize = true }]);
         general.Controls.Add(flow); hotkeys.Controls.Add(hotkeysEditor);
         var save = new Button { Dock = DockStyle.Bottom, Text = "Сохранить", Height = 42 }; save.Click += (_, _) =>
         {
             try
             {
-                Result.UseFullMonitorBounds = full.Checked; Result.AutoSnap = snap.Checked; Result.RestoreWorkspaceOnStart = restore.Checked;
-                Result.MinimumZoneWidth = (int)width.Value; Result.MinimumZoneHeight = (int)height.Value;
+                Result.UseFullMonitorBounds = full.Checked; Result.AutoSnap = snap.Checked; Result.SmartSnap = smart.Checked; Result.StrictSubmonitors = strict.Checked; Result.CaptureWinArrow = winArrow.Checked; Result.RestoreWorkspaceOnStart = restore.Checked;
+                Result.GuardIntervalMs = (int)guard.Value; Result.MinimumZoneWidth = (int)width.Value; Result.MinimumZoneHeight = (int)height.Value;
                 Result.ExcludedProcesses = exclude.Lines.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList();
                 Result.Hotkeys = hotkeysEditor.ReadBindings();
                 Storage.ValidateConfig(Result); DialogResult = DialogResult.OK; Close();

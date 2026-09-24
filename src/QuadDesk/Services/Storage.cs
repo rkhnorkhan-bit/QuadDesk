@@ -46,7 +46,7 @@ internal sealed class Storage
     }
     public static void ValidateConfig(AppConfig c)
     {
-        if (c.SchemaVersion != 1 || c.MinimumZoneWidth < 40 || c.MinimumZoneWidth > 4000 || c.MinimumZoneHeight < 40 || c.MinimumZoneHeight > 4000 || c.Rules is null || c.Hotkeys is null || c.ExcludedProcesses is null || string.IsNullOrWhiteSpace(c.ActiveLayoutId)) throw new InvalidDataException("Некорректные настройки.");
+        if (c.SchemaVersion != 1 || c.MinimumZoneWidth < 40 || c.MinimumZoneWidth > 4000 || c.MinimumZoneHeight < 40 || c.MinimumZoneHeight > 4000 || c.GuardIntervalMs < 50 || c.GuardIntervalMs > 1000 || c.Rules is null || c.Hotkeys is null || c.ExcludedProcesses is null || string.IsNullOrWhiteSpace(c.ActiveLayoutId)) throw new InvalidDataException("Некорректные настройки.");
         if (c.Rules.Any(r => r is null || string.IsNullOrWhiteSpace(r.ProcessName) || string.IsNullOrWhiteSpace(r.LayoutId) || string.IsNullOrWhiteSpace(r.ZoneId)) || c.ExcludedProcesses.Any(p => p is null) || c.Hotkeys.Any(h => string.IsNullOrWhiteSpace(h.Key) || h.Value is null)) throw new InvalidDataException("Некорректные правила или клавиши.");
     }
     public AppConfig LoadConfig()

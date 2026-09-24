@@ -8,7 +8,8 @@ namespace QuadDesk.Native;
 internal static class WindowManager
 {
     static readonly HashSet<string> ShellClasses = new(StringComparer.OrdinalIgnoreCase) { "Shell_TrayWnd", "Shell_SecondaryTrayWnd", "Progman", "WorkerW", "#32768", "#32770", "tooltips_class32", "IME", "MSCTFIME UI" };
-    static readonly HashSet<string> ShellProcesses = new(StringComparer.OrdinalIgnoreCase) { "StartMenuExperienceHost", "SearchHost", "ShellExperienceHost", "LockApp", "ApplicationFrameHost", "TextInputHost" };
+    static readonly HashSet<string> ShellProcesses = new(StringComparer.OrdinalIgnoreCase) { "StartMenuExperienceHost", "SearchHost", "ShellExperienceHost", "LockApp", "TextInputHost" };
+    static readonly HashSet<string> TerminalProcesses = new(StringComparer.OrdinalIgnoreCase) { "WindowsTerminal", "wt", "OpenConsole", "conhost", "cmd", "powershell", "pwsh" };
     public static string ClassName(nint hwnd) { var s = new StringBuilder(256); NativeMethods.GetClassName(hwnd, s, s.Capacity); return s.ToString(); }
     public static string Title(nint hwnd) { var s = new StringBuilder(512); NativeMethods.GetWindowText(hwnd, s, s.Capacity); return s.ToString(); }
     public static PixelRect? Bounds(nint hwnd)
@@ -34,12 +35,15 @@ internal static class WindowManager
         NativeMethods.GetWindowThreadProcessId(hwnd, out uint pid);
         if (pid == Environment.ProcessId) return false;
         long style = NativeMethods.GetWindowLongPtr(hwnd, -16).ToInt64(), ex = NativeMethods.GetWindowLongPtr(hwnd, -20).ToInt64();
-        if ((ex & (0x80 | 0x08000000)) != 0 || (style & 0x40000000) != 0 || (style & 0x00C00000) == 0 || (style & 0x00040000) == 0) return false;
-        if (ShellClasses.Contains(ClassName(hwnd))) return false;
+        var className = ClassName(hwnd);
+        var identity = Identity(hwnd);
+        if (identity is null) return false;
+        bool terminalLike = TerminalProcesses.Contains(identity.ProcessName) || className.Contains("ConsoleWindowClass", StringComparison.OrdinalIgnoreCase) || className.Contains("CASCADIA", StringComparison.OrdinalIgnoreCase);
+        if ((ex & (0x80 | 0x08000000)) != 0 || (style & 0x40000000) != 0 || (style & 0x00C00000) == 0 || (!terminalLike && (style & 0x00040000) == 0)) return false;
+        if (ShellClasses.Contains(className)) return false;
         if (NativeMethods.DwmInt(hwnd, 14, out int cloaked, 4) != 0 || cloaked != 0) return false;
         var bounds = Bounds(hwnd); if (bounds is null || bounds.Value.Width < 80 || bounds.Value.Height < 60) return false;
-        var identity = Identity(hwnd);
-        return identity is not null && !ShellProcesses.Contains(identity.ProcessName) && !config.ExcludedProcesses.Any(p => string.Equals(Path.GetFileNameWithoutExtension(p), identity.ProcessName, StringComparison.OrdinalIgnoreCase));
+        return !ShellProcesses.Contains(identity.ProcessName) && !config.ExcludedProcesses.Any(p => string.Equals(Path.GetFileNameWithoutExtension(p), identity.ProcessName, StringComparison.OrdinalIgnoreCase));
     }
     public static bool Place(nint hwnd, PixelRect target)
     {
