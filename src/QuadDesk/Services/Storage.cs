@@ -78,6 +78,32 @@ internal sealed class Storage
         value is { Length: 7 } &&
         value[0] == '#' &&
         value.Skip(1).All(Uri.IsHexDigit);
+    static bool NormalizeConfig(AppConfig c)
+    {
+        bool changed = false;
+
+        if (c.DisplayProfiles is null) { c.DisplayProfiles = []; changed = true; }
+        if (c.ExcludedProcesses is null) { c.ExcludedProcesses = []; changed = true; }
+        if (c.Rules is null) { c.Rules = []; changed = true; }
+        if (c.Hotkeys is null) { c.Hotkeys = []; changed = true; }
+
+        foreach (var (action, binding) in AppConfig.DefaultHotkeys())
+        {
+            if (!c.Hotkeys.ContainsKey(action))
+            {
+                c.Hotkeys[action] = binding;
+                changed = true;
+            }
+        }
+
+        if (!IsHexColor(c.CursorFinderColor))
+        {
+            c.CursorFinderColor = "#00A2FF";
+            changed = true;
+        }
+
+        return changed;
+    }
     public AppConfig LoadConfig()
     {
         if (!File.Exists(ConfigPath)) return new();
@@ -92,7 +118,9 @@ internal sealed class Storage
                 Save(ConfigPath, c);
                 Warnings.Add("Config обновлён до схемы 0.1.8; резервная копия сохранена рядом с config.json.");
             }
+            bool normalized = NormalizeConfig(c);
             ValidateConfig(c);
+            if (normalized) Save(ConfigPath, c);
             return c;
         }
         catch (Exception ex) when (ex is JsonException or InvalidDataException or IOException or ArgumentException or NotSupportedException)
