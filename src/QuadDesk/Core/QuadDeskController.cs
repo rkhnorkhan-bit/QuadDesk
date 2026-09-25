@@ -16,6 +16,7 @@ internal sealed class WindowRuntimeState
     public bool LogicalMaximized;
     public bool ManualOverride;
     public bool InitialRuleChecked;
+    public bool Floating;
     public uint SuppressThrough;
 }
 
@@ -308,12 +309,17 @@ internal sealed class QuadDeskController : IDisposable
         Changed?.Invoke();
     }
 
-    bool CanTouch(nint hwnd) =>
+    bool CanReach(nint hwnd) =>
         Active &&
         NativeMethods.IsDefaultDesktop() &&
         Target is not null &&
         MonitorManager.IsTarget(hwnd, Target) &&
         WindowManager.Eligible(hwnd, Config);
+
+    public bool IsFloating(nint hwnd) =>
+        states.TryGetValue(hwnd, out var state) && state.Floating;
+
+    bool CanTouch(nint hwnd) => CanReach(hwnd) && !IsFloating(hwnd);
 
     WindowRuntimeState Track(nint hwnd)
     {
@@ -337,6 +343,40 @@ internal sealed class QuadDeskController : IDisposable
         }
 
         return s;
+    }
+
+    public void ToggleFloating(nint hwnd)
+    {
+        if (!CanReach(hwnd))
+        {
+            Notice?.Invoke("Активное окно не подходит для Floating: оно вне выбранного дисплея или исключено.");
+            return;
+        }
+
+        var s = Track(hwnd);
+        bool floating = !s.Floating;
+        s.Floating = floating;
+        s.LogicalMaximized = false;
+        s.SnapSlot = LocalSnapSlot.Free;
+        s.ManualOverride = true;
+
+        if (WindowManager.Bounds(hwnd) is { } rect)
+        {
+            s.LastRect = rect;
+            s.ZoneId = floating ? "" : LayoutEngine.Detect(Zones, rect)?.Id ?? "";
+        }
+
+        if (dragging == hwnd)
+        {
+            dragging = 0;
+            overlay.Hide();
+        }
+
+        Notice?.Invoke(floating
+            ? "Окно оставлено свободным. QuadDesk больше не будет его привязывать."
+            : "Окно возвращено под управление QuadDesk.");
+        Changed?.Invoke();
+        Log.Write($"Window floating toggled: hwnd={hwnd}; floating={floating}");
     }
 
     public void Scan()
@@ -476,6 +516,12 @@ internal sealed class QuadDeskController : IDisposable
             if (command.StartsWith("layout:", StringComparison.Ordinal))
             {
                 SelectLayout(command[7..]);
+                return;
+            }
+
+            if (command == "float")
+            {
+                ToggleFloating(hwnd);
                 return;
             }
 
