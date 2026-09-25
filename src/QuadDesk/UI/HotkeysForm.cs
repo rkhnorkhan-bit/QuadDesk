@@ -31,7 +31,7 @@ internal sealed class HotkeysEditor : UserControl
     public HotkeysEditor(QuadDeskController controller)
     {
         this.controller = controller;
-        var help = new Label { Dock = DockStyle.Top, Height = 82, Padding = new(8), Text = "Базовый набор: Ctrl+Alt+цифра — окно в зону; Ctrl+Alt+0 — включить / выключить.\nCtrl+Alt+Shift+цифра — раскладка. Любое сочетание можно изменить или очистить.\nДважды щёлкните комбинацию для ввода текста или нажмите «Записать сочетание». Проверка действует на текущий момент." };
+        var help = new Label { Dock = DockStyle.Top, Height = 82, Padding = new(8), Text = "Базовый набор: Ctrl+Alt+цифра — окно в зону; Ctrl+Alt+0 — включить / выключить; Ctrl+Alt+F — свободное окно.\nCtrl+Alt+Shift+цифра — раскладка. Любое сочетание можно изменить или очистить.\nДважды щёлкните комбинацию для ввода текста или нажмите «Записать сочетание». Проверка действует на текущий момент." };
         var actions = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 88, Padding = new(8), AutoScroll = true };
         void Button(string text, Action action)
         {
@@ -65,7 +65,7 @@ internal sealed class HotkeysEditor : UserControl
         if (action.StartsWith("layout:")) return "Раскладка: " + (controller.Layouts.FirstOrDefault(l => l.Id == action[7..])?.Name ?? action[7..]);
         return action switch
         {
-            "toggle" => "Включить / выключить зоны", "restore" => "Восстановить размер окна", "maximize" => "Развернуть / восстановить в зоне",
+            "toggle" => "Включить / выключить зоны", "restore" => "Восстановить размер окна", "maximize" => "Развернуть / восстановить в зоне", "float" => "Оставить / вернуть активное окно свободным",
             "left" => "Окно → соседняя зона слева", "right" => "Окно → соседняя зона справа", "up" => "Окно → зона сверху", "down" => "Окно → зона снизу", _ => action
         };
     }
