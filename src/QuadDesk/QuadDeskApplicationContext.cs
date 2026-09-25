@@ -55,6 +55,12 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         controller.Save();
         cursorFinder.Sync();
     }
+    void SetCursorFinderColor(string color)
+    {
+        controller.Config.CursorFinderColor = color;
+        controller.Save();
+        cursorFinder.Sync();
+    }
     void BuildMenu()
     {
         foreach (ToolStripItem item in menu.Items.Cast<ToolStripItem>().ToArray()) { menu.Items.Remove(item); item.Dispose(); }
@@ -74,6 +80,21 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         Add("Восстановить размер", () => controller.ExecuteFor("restore", menuForeground));
         Add("Автопривязка", () => { controller.Config.AutoSnap = !controller.Config.AutoSnap; controller.Save(); }, controller.Config.AutoSnap);
         Add("Cursor Finder", ToggleCursorFinder, controller.Config.CursorFinderEnabled);
+        var cursorColors = new ToolStripMenuItem("Цвет Cursor Finder");
+        menu.Items.Add(cursorColors);
+        void CursorColor(string name, string color)
+        {
+            var item = new ToolStripMenuItem(name) { Checked = string.Equals(controller.Config.CursorFinderColor, color, StringComparison.OrdinalIgnoreCase) };
+            item.Click += (_, _) => main.Safe(() => SetCursorFinderColor(color));
+            cursorColors.DropDownItems.Add(item);
+        }
+        CursorColor("Голубой", "#00A2FF");
+        CursorColor("Зелёный", "#00D084");
+        CursorColor("Жёлтый", "#FFD400");
+        CursorColor("Оранжевый", "#FF8A00");
+        CursorColor("Красный", "#FF3B30");
+        CursorColor("Фиолетовый", "#A855F7");
+        CursorColor("Белый", "#FFFFFF");
         Add("Strict Submonitors", ToggleStrict, controller.Config.StrictSubmonitors);
         Add("Win+Arrow внутри зон", ToggleWinArrow, controller.Config.CaptureWinArrow);
         Add("Отключать системный Windows Snap", ToggleWindowsSnap, controller.Config.SuspendWindowsSnap);
@@ -83,7 +104,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         Add("Выбрать дисплей…", main.SelectMonitor); Add("Сохранить workspace", controller.SaveWorkspace); Add("Восстановить workspace", controller.TryRestoreWorkspace);
         Add("Запускать с Windows", () => StartupService.Set(!StartupService.Enabled), StartupService.Enabled);
         Add("Открыть config.json", () => { controller.Save(); Process.Start(new ProcessStartInfo(controller.Store.ConfigPath) { UseShellExecute = true }); });
-        Add("О программе", () => MessageBox.Show(main, $"{AppInfo.DisplayName}\nЛогические зоны одного физического дисплея.\nSource-available. Без телеметрии.\nГорячие клавиши настраиваются через меню.\nCursor Finder увеличивает курсор при резкой тряске мыши и подавляется поверх full-screen.\nПеред играми выключайте QuadDesk.\nИзменения config.json вручную применяются после перезапуска.", "QuadDesk"));
+        Add("О программе", () => MessageBox.Show(main, $"{AppInfo.DisplayName}\nЛогические зоны одного физического дисплея.\nSource-available. Без телеметрии.\nГорячие клавиши настраиваются через меню.\nCursor Finder увеличивает курсор при резкой тряске мыши, поддерживает выбор цвета и подавляется поверх full-screen.\nПеред играми выключайте QuadDesk.\nИзменения config.json вручную применяются после перезапуска.", "QuadDesk"));
         menu.Items.Add(new ToolStripSeparator()); Add("Выход", ExitThread);
     }
     protected override void ExitThreadCore()
