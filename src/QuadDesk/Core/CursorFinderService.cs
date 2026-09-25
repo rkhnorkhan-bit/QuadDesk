@@ -68,7 +68,20 @@ internal sealed class CursorFinderService : IDisposable
         overlay.Pulse(
             point,
             controller.Config.CursorFinderMaxSize,
-            controller.Config.CursorFinderFadeMs);
+            controller.Config.CursorFinderFadeMs,
+            CursorFinderColor());
+    }
+
+    Color CursorFinderColor()
+    {
+        try
+        {
+            return ColorTranslator.FromHtml(controller.Config.CursorFinderColor);
+        }
+        catch
+        {
+            return SystemColors.Highlight;
+        }
     }
 
     bool LooksLikeShake()
