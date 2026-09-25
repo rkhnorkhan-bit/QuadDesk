@@ -123,6 +123,7 @@ public sealed class AppConfig
     public int CursorFinderSensitivity { get; set; } = 650;
     public int CursorFinderMaxSize { get; set; } = 96;
     public int CursorFinderFadeMs { get; set; } = 650;
+    public string CursorFinderColor { get; set; } = "#00A2FF";
     public List<DisplayProfile> DisplayProfiles { get; set; } = [];
     public List<string> ExcludedProcesses { get; set; } = [];
     public List<WindowRule> Rules { get; set; } = [];

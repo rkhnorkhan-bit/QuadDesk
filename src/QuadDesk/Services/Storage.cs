@@ -53,6 +53,7 @@ internal sealed class Storage
             c.CursorFinderSensitivity < 200 || c.CursorFinderSensitivity > 3000 ||
             c.CursorFinderMaxSize < 48 || c.CursorFinderMaxSize > 256 ||
             c.CursorFinderFadeMs < 150 || c.CursorFinderFadeMs > 3000 ||
+            !IsHexColor(c.CursorFinderColor) ||
             c.Rules is null || c.Hotkeys is null || c.ExcludedProcesses is null || c.DisplayProfiles is null ||
             string.IsNullOrWhiteSpace(c.ActiveLayoutId))
             throw new InvalidDataException("Некорректные настройки.");
@@ -73,6 +74,10 @@ internal sealed class Storage
         if (c.DisplayProfiles.Select(p => p.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count() != c.DisplayProfiles.Count)
             throw new InvalidDataException("Повтор профиля дисплея.");
     }
+    static bool IsHexColor(string? value) =>
+        value is { Length: 7 } &&
+        value[0] == '#' &&
+        value.Skip(1).All(Uri.IsHexDigit);
     public AppConfig LoadConfig()
     {
         if (!File.Exists(ConfigPath)) return new();
