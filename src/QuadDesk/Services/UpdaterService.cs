@@ -82,11 +82,15 @@ internal static class UpdaterService
             string.IsNullOrWhiteSpace(update.ChecksumsUrl))
             throw new InvalidOperationException("Нет готового stable-обновления.");
 
-        string root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QuadDesk", "updates", update.LatestVersion);
+        string versionRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QuadDesk", "updates", update.LatestVersion);
+        string attemptId = DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Guid.NewGuid().ToString("N")[..8];
+        string root = Path.Combine(versionRoot, attemptId);
         Directory.CreateDirectory(root);
 
         string installerPath = Path.Combine(root, update.InstallerName);
         string checksumsPath = Path.Combine(root, "SHA256SUMS.txt");
+
+        TryPruneOldAttempts(versionRoot, root);
 
         using var http = CreateClient();
 
@@ -150,14 +154,50 @@ internal static class UpdaterService
                 throw new InvalidOperationException($"Download failed: HTTP {(int)response.StatusCode}.");
 
             await using var source = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            await using var target = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-            await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
-            await target.FlushAsync(cancellationToken).ConfigureAwait(false);
-            File.Move(temp, path, overwrite: true);
+            await using (var target = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+            {
+                await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
+                await target.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            File.Move(temp, path, overwrite: false);
         }
         finally
         {
-            if (File.Exists(temp)) File.Delete(temp);
+            TryDelete(temp);
+        }
+    }
+
+    static void TryPruneOldAttempts(string versionRoot, string currentRoot)
+    {
+        try
+        {
+            string current = Path.GetFullPath(currentRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            foreach (var dir in Directory.EnumerateDirectories(versionRoot)
+                         .OrderByDescending(Directory.GetCreationTimeUtc)
+                         .Skip(4))
+            {
+                string candidate = Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                if (!string.Equals(candidate, current, StringComparison.OrdinalIgnoreCase))
+                    Directory.Delete(candidate, recursive: true);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException)
+        {
+            Log.Write("Updater cleanup skipped: " + ex.GetType().Name);
+        }
+    }
+
+    static void TryDelete(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Write("Updater temp cleanup skipped: " + ex.GetType().Name);
         }
     }
 
