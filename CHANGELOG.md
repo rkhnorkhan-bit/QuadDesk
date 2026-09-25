@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.10
+
+- verification release for the hardened updater introduced in `0.1.9`;
+- no large feature changes: this release exists to prove the stable in-app update path `0.1.9 → 0.1.10`;
+- update window text now explicitly shows that the source is stable GitHub Releases;
+- expected test path: `Обновления… → Проверить → Скачать и установить`, without manual download or PowerShell cleanup.
+
 ## 0.1.9
 
 - hotfix updater: каждая попытка обновления скачивает installer и `SHA256SUMS.txt` в уникальную подпапку;

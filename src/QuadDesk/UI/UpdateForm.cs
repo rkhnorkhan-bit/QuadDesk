@@ -9,7 +9,7 @@ internal sealed class UpdateForm : Form
         Dock = DockStyle.Fill,
         Padding = new Padding(16),
         Font = new Font("Segoe UI", 10),
-        Text = "Нажмите «Проверить», чтобы найти stable-обновление в GitHub Releases."
+        Text = "Канал обновлений: stable GitHub Releases.\n\nНажмите «Проверить», чтобы найти новую стабильную версию."
     };
 
     readonly Button check = new() { Text = "Проверить", AutoSize = true };
@@ -49,7 +49,7 @@ internal sealed class UpdateForm : Form
         SetBusy(true);
         try
         {
-            status.Text = "Проверяю GitHub Releases...";
+            status.Text = "Проверяю stable GitHub Releases...";
             available = await UpdaterService.CheckStableAsync(lifetime.Token);
 
             if (available.State == UpdateState.Available)
@@ -59,7 +59,8 @@ internal sealed class UpdateForm : Form
                     $"Доступно stable-обновление.\n\n" +
                     $"Текущая версия: {available.CurrentVersion}\n" +
                     $"Новая версия: {available.LatestVersion}\n" +
-                    $"Файл: {available.InstallerName}\n\n" +
+                    $"Файл: {available.InstallerName}\n" +
+                    $"Источник: stable GitHub Release\n\n" +
                     "При установке QuadDesk закроется, внешний updater проверит SHA-256, запустит установщик и затем откроет новую версию.";
             }
             else
@@ -68,7 +69,8 @@ internal sealed class UpdateForm : Form
                 status.Text =
                     $"{available.Message}\n\n" +
                     $"Текущая версия: {available.CurrentVersion}\n" +
-                    $"Последняя stable-версия: {available.LatestVersion}";
+                    $"Последняя stable-версия: {available.LatestVersion}\n" +
+                    $"Источник: stable GitHub Releases";
             }
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or InvalidOperationException or FormatException or TaskCanceledException)
