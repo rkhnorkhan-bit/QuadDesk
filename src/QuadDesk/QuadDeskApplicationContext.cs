@@ -8,6 +8,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
     readonly QuadDeskController controller;
     readonly StrictSubmonitorService strict;
     readonly WindowsSnapService windowsSnap;
+    readonly CursorFinderService cursorFinder;
     readonly MainForm main;
     readonly NotifyIcon tray;
     readonly Icon trayIcon;
@@ -18,6 +19,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         controller = new(new Storage(), host);
         strict = new(controller);
         windowsSnap = new(controller);
+        cursorFinder = new(controller);
         host.InterceptCommand = strict.HandleWinCommand;
         main = new(controller);
         trayIcon = (Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application).Clone() as Icon ?? SystemIcons.Application;
@@ -47,6 +49,12 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         controller.Save();
         windowsSnap.Sync();
     }
+    void ToggleCursorFinder()
+    {
+        controller.Config.CursorFinderEnabled = !controller.Config.CursorFinderEnabled;
+        controller.Save();
+        cursorFinder.Sync();
+    }
     void BuildMenu()
     {
         foreach (ToolStripItem item in menu.Items.Cast<ToolStripItem>().ToArray()) { menu.Items.Remove(item); item.Dispose(); }
@@ -65,6 +73,7 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         Add("Развернуть / восстановить в зоне", () => controller.ExecuteFor("maximize", menuForeground));
         Add("Восстановить размер", () => controller.ExecuteFor("restore", menuForeground));
         Add("Автопривязка", () => { controller.Config.AutoSnap = !controller.Config.AutoSnap; controller.Save(); }, controller.Config.AutoSnap);
+        Add("Cursor Finder", ToggleCursorFinder, controller.Config.CursorFinderEnabled);
         Add("Strict Submonitors", ToggleStrict, controller.Config.StrictSubmonitors);
         Add("Win+Arrow внутри зон", ToggleWinArrow, controller.Config.CaptureWinArrow);
         Add("Отключать системный Windows Snap", ToggleWindowsSnap, controller.Config.SuspendWindowsSnap);
@@ -74,11 +83,11 @@ internal sealed class QuadDeskApplicationContext : ApplicationContext
         Add("Выбрать дисплей…", main.SelectMonitor); Add("Сохранить workspace", controller.SaveWorkspace); Add("Восстановить workspace", controller.TryRestoreWorkspace);
         Add("Запускать с Windows", () => StartupService.Set(!StartupService.Enabled), StartupService.Enabled);
         Add("Открыть config.json", () => { controller.Save(); Process.Start(new ProcessStartInfo(controller.Store.ConfigPath) { UseShellExecute = true }); });
-        Add("О программе", () => MessageBox.Show(main, $"{AppInfo.DisplayName}\nЛогические зоны одного физического дисплея.\nSource-available. Без телеметрии.\nГорячие клавиши настраиваются через меню.\nПеред играми выключайте QuadDesk.\nИзменения config.json вручную применяются после перезапуска.", "QuadDesk"));
+        Add("О программе", () => MessageBox.Show(main, $"{AppInfo.DisplayName}\nЛогические зоны одного физического дисплея.\nSource-available. Без телеметрии.\nГорячие клавиши настраиваются через меню.\nCursor Finder увеличивает курсор при резкой тряске мыши и подавляется поверх full-screen.\nПеред играми выключайте QuadDesk.\nИзменения config.json вручную применяются после перезапуска.", "QuadDesk"));
         menu.Items.Add(new ToolStripSeparator()); Add("Выход", ExitThread);
     }
     protected override void ExitThreadCore()
     {
-        tray.Visible = false; windowsSnap.Dispose(); strict.Dispose(); controller.Dispose(); main.Dispose(); tray.Dispose(); trayIcon.Dispose(); menu.Dispose(); host.Dispose(); base.ExitThreadCore();
+        tray.Visible = false; cursorFinder.Dispose(); windowsSnap.Dispose(); strict.Dispose(); controller.Dispose(); main.Dispose(); tray.Dispose(); trayIcon.Dispose(); menu.Dispose(); host.Dispose(); base.ExitThreadCore();
     }
 }

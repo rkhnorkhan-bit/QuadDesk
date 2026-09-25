@@ -118,6 +118,11 @@ public sealed class AppConfig
     public bool RestoreWorkspaceOnStart { get; set; }
     public int MinimumZoneWidth { get; set; } = 200;
     public int MinimumZoneHeight { get; set; } = 150;
+    public bool CursorFinderEnabled { get; set; } = true;
+    public bool CursorFinderSuppressFullscreen { get; set; } = true;
+    public int CursorFinderSensitivity { get; set; } = 650;
+    public int CursorFinderMaxSize { get; set; } = 96;
+    public int CursorFinderFadeMs { get; set; } = 650;
     public List<DisplayProfile> DisplayProfiles { get; set; } = [];
     public List<string> ExcludedProcesses { get; set; } = [];
     public List<WindowRule> Rules { get; set; } = [];

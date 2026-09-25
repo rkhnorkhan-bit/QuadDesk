@@ -50,6 +50,9 @@ internal sealed class Storage
             c.MinimumZoneWidth < 40 || c.MinimumZoneWidth > 4000 ||
             c.MinimumZoneHeight < 40 || c.MinimumZoneHeight > 4000 ||
             c.GuardIntervalMs < 50 || c.GuardIntervalMs > 1000 ||
+            c.CursorFinderSensitivity < 200 || c.CursorFinderSensitivity > 3000 ||
+            c.CursorFinderMaxSize < 48 || c.CursorFinderMaxSize > 256 ||
+            c.CursorFinderFadeMs < 150 || c.CursorFinderFadeMs > 3000 ||
             c.Rules is null || c.Hotkeys is null || c.ExcludedProcesses is null || c.DisplayProfiles is null ||
             string.IsNullOrWhiteSpace(c.ActiveLayoutId))
             throw new InvalidDataException("Некорректные настройки.");

@@ -83,14 +83,14 @@ internal sealed class LayoutEditorForm : Form
 internal sealed class SettingsForm : Form
 {
     public AppConfig Result { get; private set; }
-    readonly CheckBox full, snap, smart, strict, winArrow, restore;
-    readonly NumericUpDown width, height, guard;
+    readonly CheckBox full, snap, smart, strict, winArrow, restore, cursorFinder, cursorFinderFullscreen;
+    readonly NumericUpDown width, height, guard, cursorSensitivity, cursorSize, cursorFade;
     readonly TextBox exclude;
     readonly HotkeysEditor hotkeysEditor;
     public SettingsForm(QuadDeskController controller)
     {
         var source = controller.Config; hotkeysEditor = new(controller) { Dock = DockStyle.Fill };
-        Result = JsonData.Clone(source); Text = "Настройки QuadDesk"; ClientSize = new(760, 720); StartPosition = FormStartPosition.CenterParent; AutoScaleMode = AutoScaleMode.Dpi;
+        Result = JsonData.Clone(source); Text = "Настройки QuadDesk"; ClientSize = new(760, 760); StartPosition = FormStartPosition.CenterParent; AutoScaleMode = AutoScaleMode.Dpi;
         var tabs = new TabControl { Dock = DockStyle.Fill };
         var general = new TabPage("Общие"); var hotkeys = new TabPage("Горячие клавиши"); tabs.TabPages.AddRange([general, hotkeys]);
         var flow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, Padding = new(16), AutoScroll = true };
@@ -100,19 +100,33 @@ internal sealed class SettingsForm : Form
         strict = new() { Text = "Strict Submonitors: жёстко удерживать окна внутри подмониторов", Checked = source.StrictSubmonitors, AutoSize = true };
         winArrow = new() { Text = "Перехватывать Win+Arrow на выбранном мониторе", Checked = source.CaptureWinArrow, AutoSize = true };
         restore = new() { Text = "Восстанавливать workspace при запуске", Checked = source.RestoreWorkspaceOnStart, AutoSize = true };
+        cursorFinder = new() { Text = "Cursor Finder: увеличивать курсор при резкой тряске мыши", Checked = source.CursorFinderEnabled, AutoSize = true };
+        cursorFinderFullscreen = new() { Text = "Не показывать Cursor Finder поверх full-screen/игр", Checked = source.CursorFinderSuppressFullscreen, AutoSize = true };
         width = new() { Minimum = 40, Maximum = 4000, Value = source.MinimumZoneWidth, Width = 120 };
         height = new() { Minimum = 40, Maximum = 4000, Value = source.MinimumZoneHeight, Width = 120 };
         guard = new() { Minimum = 50, Maximum = 1000, Increment = 25, Value = Math.Clamp(source.GuardIntervalMs, 50, 1000), Width = 120 };
+        cursorSensitivity = new() { Minimum = 200, Maximum = 3000, Increment = 50, Value = Math.Clamp(source.CursorFinderSensitivity, 200, 3000), Width = 120 };
+        cursorSize = new() { Minimum = 48, Maximum = 256, Increment = 8, Value = Math.Clamp(source.CursorFinderMaxSize, 48, 256), Width = 120 };
+        cursorFade = new() { Minimum = 150, Maximum = 3000, Increment = 50, Value = Math.Clamp(source.CursorFinderFadeMs, 150, 3000), Width = 120 };
         exclude = new() { Multiline = true, Width = 650, Height = 130, ScrollBars = ScrollBars.Vertical, Text = string.Join(Environment.NewLine, source.ExcludedProcesses) };
-        flow.Controls.AddRange([full, snap, smart, strict, winArrow, restore, new Label { Text = "Частота Strict Guard (ms)", AutoSize = true }, guard, new Label { Text = "Минимальная ширина зоны (px)", AutoSize = true }, width, new Label { Text = "Минимальная высота зоны (px)", AutoSize = true }, height, new Label { Text = "Исключения: имя процесса на строку (например game.exe)", AutoSize = true }, exclude,
-            new Label { Text = "Панель задач на ТВ: Параметры Windows → Персонализация →\nПанель задач → Поведение → показывать на всех дисплеях: выкл.", AutoSize = true }]);
+        flow.Controls.AddRange([full, snap, smart, strict, winArrow, restore,
+            new Label { Text = "Cursor Finder", AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold) },
+            cursorFinder,
+            cursorFinderFullscreen,
+            new Label { Text = "Чувствительность Cursor Finder: меньше = легче срабатывает", AutoSize = true }, cursorSensitivity,
+            new Label { Text = "Максимальный размер визуального курсора (px)", AutoSize = true }, cursorSize,
+            new Label { Text = "Затухание Cursor Finder (ms)", AutoSize = true }, cursorFade,
+            new Label { Text = "Частота Strict Guard (ms)", AutoSize = true }, guard, new Label { Text = "Минимальная ширина зоны (px)", AutoSize = true }, width, new Label { Text = "Минимальная высота зоны (px)", AutoSize = true }, height, new Label { Text = "Исключения: имя процесса на строку (например game.exe)", AutoSize = true }, exclude,
+            new Label { Text = "Панель задач на ТВ: Параметры Windows → Персонализация →\nПанель задач → Поведение → показывать на всех дисплеях: выкл.\nСистемный круг по Ctrl отключается отдельно: Панель управления → Мышь → Параметры указателя.", AutoSize = true }]);
         general.Controls.Add(flow); hotkeys.Controls.Add(hotkeysEditor);
         var save = new Button { Dock = DockStyle.Bottom, Text = "Сохранить", Height = 42 }; save.Click += (_, _) =>
         {
             try
             {
                 Result.UseFullMonitorBounds = full.Checked; Result.AutoSnap = snap.Checked; Result.SmartSnap = smart.Checked; Result.StrictSubmonitors = strict.Checked; Result.CaptureWinArrow = winArrow.Checked; Result.RestoreWorkspaceOnStart = restore.Checked;
+                Result.CursorFinderEnabled = cursorFinder.Checked; Result.CursorFinderSuppressFullscreen = cursorFinderFullscreen.Checked;
                 Result.GuardIntervalMs = (int)guard.Value; Result.MinimumZoneWidth = (int)width.Value; Result.MinimumZoneHeight = (int)height.Value;
+                Result.CursorFinderSensitivity = (int)cursorSensitivity.Value; Result.CursorFinderMaxSize = (int)cursorSize.Value; Result.CursorFinderFadeMs = (int)cursorFade.Value;
                 Result.ExcludedProcesses = exclude.Lines.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList();
                 Result.Hotkeys = hotkeysEditor.ReadBindings();
                 Storage.ValidateConfig(Result); DialogResult = DialogResult.OK; Close();
