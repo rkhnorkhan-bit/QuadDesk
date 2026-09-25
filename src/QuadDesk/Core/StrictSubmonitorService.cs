@@ -126,7 +126,8 @@ internal sealed class StrictSubmonitorService : IDisposable
         controller.Target is { } target &&
         NativeMethods.IsDefaultDesktop() &&
         MonitorManager.IsTarget(hwnd, target) &&
-        WindowManager.Eligible(hwnd, controller.Config);
+        WindowManager.Eligible(hwnd, controller.Config) &&
+        !controller.IsFloating(hwnd);
 
     ManagedWindow Track(nint hwnd)
     {
