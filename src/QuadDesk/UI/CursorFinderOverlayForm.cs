@@ -12,6 +12,7 @@ internal sealed class CursorFinderOverlayForm : Form
     DateTimeOffset startedAt;
     int durationMs = 650;
     int visualSize = 96;
+    Color accentColor = SystemColors.Highlight;
 
     public CursorFinderOverlayForm()
     {
@@ -53,10 +54,11 @@ internal sealed class CursorFinderOverlayForm : Form
         }
     }
 
-    public void Pulse(Point cursor, int size, int fadeMs)
+    public void Pulse(Point cursor, int size, int fadeMs, Color color)
     {
         visualSize = Math.Clamp(size, 48, 256);
         durationMs = Math.Clamp(fadeMs, 150, 3000);
+        accentColor = color;
         startedAt = DateTimeOffset.UtcNow;
         Reposition(cursor);
 
@@ -79,7 +81,8 @@ internal sealed class CursorFinderOverlayForm : Form
     void Reposition(Point cursor)
     {
         int margin = Math.Max(24, visualSize / 3);
-        Bounds = new Rectangle(cursor.X - margin, cursor.Y - margin, visualSize + margin * 2, visualSize + margin * 2);
+        int side = visualSize + margin * 2;
+        Bounds = new Rectangle(cursor.X - side / 2, cursor.Y - side / 2, side, side);
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -93,15 +96,17 @@ internal sealed class CursorFinderOverlayForm : Form
 
         e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-        int margin = Math.Max(24, visualSize / 3);
-        var cursorRect = new Rectangle(margin, margin, visualSize, visualSize);
-        var haloRect = Rectangle.Inflate(cursorRect, visualSize / 5, visualSize / 5);
+        int centerX = ClientSize.Width / 2;
+        int centerY = ClientSize.Height / 2;
+        var cursorRect = new Rectangle(centerX - visualSize / 2, centerY - visualSize / 2, visualSize, visualSize);
+        int haloSize = visualSize + Math.Max(24, visualSize / 3);
+        var haloRect = new Rectangle(centerX - haloSize / 2, centerY - haloSize / 2, haloSize, haloSize);
 
-        int glowAlpha = Math.Clamp((int)(70 * strength), 0, 70);
-        int lineAlpha = Math.Clamp((int)(210 * strength), 0, 210);
-        using var glow = new SolidBrush(Color.FromArgb(glowAlpha, SystemColors.Highlight));
+        int glowAlpha = Math.Clamp((int)(80 * strength), 0, 80);
+        int lineAlpha = Math.Clamp((int)(230 * strength), 0, 230);
+        using var glow = new SolidBrush(Color.FromArgb(glowAlpha, accentColor));
         using var outer = new Pen(Color.FromArgb(lineAlpha, Color.White), Math.Max(2, visualSize / 26f));
-        using var inner = new Pen(Color.FromArgb(Math.Clamp((int)(160 * strength), 0, 160), SystemColors.Highlight), Math.Max(2, visualSize / 34f));
+        using var inner = new Pen(Color.FromArgb(Math.Clamp((int)(190 * strength), 0, 190), accentColor), Math.Max(2, visualSize / 34f));
 
         e.Graphics.FillEllipse(glow, haloRect);
         e.Graphics.DrawEllipse(outer, haloRect);
