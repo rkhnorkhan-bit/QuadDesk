@@ -136,6 +136,7 @@ public sealed class AppConfig
             ["toggle"] = "Ctrl+Alt+0",
             ["restore"] = "Ctrl+Alt+R",
             ["maximize"] = "Ctrl+Alt+M",
+            ["float"] = "Ctrl+Alt+F",
             ["left"] = "Ctrl+Alt+Left",
             ["right"] = "Ctrl+Alt+Right",
             ["up"] = "Ctrl+Alt+Up",
