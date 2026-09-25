@@ -19,6 +19,7 @@
   "cursorFinderSensitivity": 650,
   "cursorFinderMaxSize": 96,
   "cursorFinderFadeMs": 650,
+  "cursorFinderColor": "#00A2FF",
   "displayProfiles": [],
   "excludedProcesses": [],
   "rules": [],
